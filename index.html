@@ -313,13 +313,13 @@ const WRAPS=[
   {id:'neon',   name:'Neon Circuit', price:950, desc:'Blacklight shell over electric-teal circuitry.', accent:0x0c1f1c, tint:0x123c36, glow:0x35d0ba},
 ];
 const KILL_REWARD=30, HEADSHOT_REWARD=45, WIN_BONUS=150, ROUND_GOAL=10;
-const BOT_NAMES=['RIVAL-ACE','RIVAL-NYX','RIVAL-BOLT','RIVAL-DUKE'];
+const BOT_NAMES=['RIVAL-ACE','RIVAL-NYX','RIVAL-BOLT','RIVAL-DUKE','RIVAL-ZED','RIVAL-KAI'];
 
 /* ================= SAVE ================= */
 function defaults(){
   return {bombs:150, owned:['blaster'], equipped:'blaster', map:'arena', mode:'solo',
           name:'RIVAL-'+Math.floor(1000+Math.random()*9000),
-          ownedSkins:[], skins:{}, ownedWraps:[], wrap:null, updatedAt:0};
+          ownedSkins:[], skins:{}, ownedWraps:[], wrap:null, roundsWon:0, updatedAt:0};
 }
 function loadSave(){
   const d=defaults();
@@ -343,7 +343,8 @@ function genCode(){
 }
 function profileBody(){
   return {bombs:save.bombs, owned:save.owned, equipped:save.equipped, ownedSkins:save.ownedSkins,
-    skins:save.skins, ownedWraps:save.ownedWraps, wrap:save.wrap, name:save.name, updatedAt:Date.now()};
+    skins:save.skins, ownedWraps:save.ownedWraps, wrap:save.wrap, name:save.name,
+    roundsWon:save.roundsWon||0, updatedAt:Date.now()};
 }
 function mergeProfile(d){
   if(!d || typeof d!=='object') return;
@@ -351,6 +352,7 @@ function mergeProfile(d){
   if(Array.isArray(d.owned)) save.owned=[...new Set([...save.owned,...d.owned.filter(x=>WEAPONS.some(w=>w.id===x))])];
   if(Array.isArray(d.ownedSkins)) save.ownedSkins=[...new Set([...save.ownedSkins,...d.ownedSkins.filter(x=>SKINS.some(s=>s.id===x))])];
   if(Array.isArray(d.ownedWraps)) save.ownedWraps=[...new Set([...save.ownedWraps,...d.ownedWraps.filter(x=>WRAPS.some(w=>w.id===x))])];
+  if(typeof d.roundsWon==='number') save.roundsWon=Math.max(save.roundsWon||0, Math.floor(d.roundsWon));
   if(cloudNewer){
     if(typeof d.bombs==='number' && isFinite(d.bombs)) save.bombs=Math.max(0,Math.floor(d.bombs));
     if(typeof d.equipped==='string' && save.owned.includes(d.equipped)) save.equipped=d.equipped;
@@ -375,6 +377,21 @@ async function pushProfile(){
 }
 function setAcct(state){ acctState=state; renderAcct(); }
 function refreshLobbyFromSave(){ renderWallet(); renderShop(); renderMaps(); renderModes(); $('callsign').value=save.name; }
+function saveLocal(){ try{ localStorage.setItem('blastrivals-save', JSON.stringify(save)); }catch(e){} }
+let profileUnsub=null;
+function subscribeProfile(){
+  if(profileUnsub){ profileUnsub(); profileUnsub=null; }
+  if(!db || !acctCode) return;
+  profileUnsub=db.doc('profiles/'+acctCode).onSnapshot(snap=>{
+    if(!snap.exists || snap.metadata.hasPendingWrites) return;
+    const d=snap.data();
+    if((+d.updatedAt||0) <= (save.updatedAt||0)) return;   // nothing newer than us
+    mergeProfile(d);
+    save.updatedAt=+d.updatedAt||Date.now();
+    saveLocal();
+    if(G){ renderWallet(); } else refreshLobbyFromSave();  // live update from your other device
+  }, ()=>{ /* subscription died; periodic pushes still work */ });
+}
 function renderAcct(){
   const el=$('acct'); el.innerHTML='';
   const S=t=>{ const s=document.createElement('span'); s.innerHTML=t; el.appendChild(s); return s; };
@@ -398,9 +415,9 @@ function renderAcct(){
     B('Retry now',()=>pushProfile());
   }
   else { // linked
-    S(`Account <b>${esc(acctCode)}</b> — synced. Use this code to load your progress anywhere.`);
+    S(`Account <b>${esc(acctCode)}</b> — progress auto-saves & syncs live. Use this code on any device.`);
     B('Copy code',async ev=>{ try{ await navigator.clipboard.writeText(acctCode); ev.target.textContent='Copied!'; setTimeout(()=>{ev.target.textContent='Copy code';},1200); }catch(e){} });
-    B('Sign out',()=>{ acctCode=null; storeAcctCode(null); setAcct('nocode'); });
+    B('Use another code',()=>{ acctLinkMsg='Enter the account code to switch to:'; setAcct('link'); });
   }
 }
 async function createAccount(){
@@ -409,7 +426,7 @@ async function createAccount(){
   try{
     save.updatedAt=Date.now();
     await db.doc('profiles/'+code).set(profileBody());
-    acctCode=code; storeAcctCode(code); setAcct('linked'); sfx('buy');
+    acctCode=code; storeAcctCode(code); setAcct('linked'); subscribeProfile();
   }catch(e){ setAcct('error'); }
 }
 async function linkAccount(code){
@@ -420,7 +437,7 @@ async function linkAccount(code){
     if(!snap.exists){ acctLinkMsg='Code not found — double-check it:'; setAcct('link'); return; }
     mergeProfile(snap.data());
     acctCode=code; storeAcctCode(code);
-    persist(); refreshLobbyFromSave(); setAcct('linked'); sfx('buy');
+    persist(); refreshLobbyFromSave(); setAcct('linked'); subscribeProfile(); sfx('buy');
   }catch(e){ setAcct('error'); }
 }
 (async()=>{
@@ -428,11 +445,11 @@ async function linkAccount(code){
   try{ if(window.claude && typeof window.claude.use==='function') db=await window.claude.use('db'); }catch(e){ db=null; }
   if(!db){ setAcct('nodb'); return; }
   acctCode=loadAcctCode();
-  if(!acctCode){ setAcct('nocode'); return; }
+  if(!acctCode){ await createAccount(); return; }   // zero-friction: every player gets an account
   try{
     const snap=await db.doc('profiles/'+acctCode).get();
-    if(snap.exists){ mergeProfile(snap.data()); persist(); refreshLobbyFromSave(); setAcct('linked'); }
-    else{ acctCode=null; storeAcctCode(null); setAcct('nocode'); }
+    if(snap.exists){ mergeProfile(snap.data()); persist(); refreshLobbyFromSave(); setAcct('linked'); subscribeProfile(); }
+    else{ acctCode=null; storeAcctCode(null); await createAccount(); }
   }catch(e){ setAcct('error'); }
 })();
 function persist(){
@@ -656,6 +673,26 @@ function glowBox(w,h,d,x,y,z,color){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshBasicMaterial({color}));
   m.position.set(x,y,z); scene.add(m); return m;
 }
+/* interactables: jump pads fling you up, slide gates carry you down, ice zones skid */
+const mapPads=[], mapSlides=[], iceZones=[];
+function jumpPad(x,z,vy,pushTo){
+  const ring=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.24,20), new THREE.MeshBasicMaterial({color:0x35d0ba}));
+  ring.position.set(x,0.12,z); scene.add(ring);
+  const core=new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,0.2,20), new THREE.MeshBasicMaterial({color:0xbafff2}));
+  core.position.set(x,0.2,z); scene.add(core);
+  mapAnims.push((dt,t)=>{ const s=1+Math.sin(t*4+x*0.7)*0.1; ring.scale.set(s,1,s); });
+  mapPads.push({x,z,r:1.8,vy,pushTo,cd:0});
+}
+function slideRide(from,mid,to,color){
+  const gate=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.15,10,24), new THREE.MeshBasicMaterial({color}));
+  gate.position.set(from[0],from[1]+1.1,from[2]);
+  gate.lookAt(new THREE.Vector3(mid[0],from[1]+1.1,mid[2]));
+  scene.add(gate);
+  mapAnims.push((dt,t)=>{ const s=1+Math.sin(t*3+from[0])*0.1; gate.scale.set(s,s,1); });
+  mapSlides.push({from:new THREE.Vector3(from[0],from[1],from[2]),
+                  mid:new THREE.Vector3(mid[0],mid[1],mid[2]),
+                  to:new THREE.Vector3(to[0],to[1],to[2])});
+}
 function tree(x,z,trunkH,trunkC,crownC,crownShape){
   cyl(0.45,trunkH,x,trunkH/2,z,trunkC);   // solid trunk — blocks movement
   for(let i=0;i<3;i++){
@@ -782,11 +819,15 @@ const BUILDERS={
     mapAnims.push(dt=>{ caustics.offset.x+=dt*0.02; caustics.offset.y+=dt*0.013; });
     // slide towers with spiraling tubes
     [[-30,-30,0xff8fb2],[30,-30,0x8fe08a],[30,30,0xffd166],[-30,30,0xb28fff]].forEach(t=>{
+      const sx=Math.sign(t[0]), sz=Math.sign(t[1]);
       cyl(2.2,10, t[0],5,t[1], t[2]);
-      box(7,0.6,7, t[0],10.3,t[1], t[2], {deco:true});
+      box(7,0.6,7, t[0],10.3,t[1], t[2]);            // solid platform — you can stand up here
       box(7,2.2,0.4, t[0],11.6,t[1]+3.3, t[2], {deco:true});
       const tube=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,16,10,1,true), new THREE.MeshLambertMaterial({color:t[2], side:THREE.DoubleSide}));
       tube.position.set(t[0]*0.62,5.4,t[1]*0.62); tube.rotation.z=Math.sign(t[0])*Math.PI/3.1; tube.rotation.y=Math.atan2(t[1],t[0]); scene.add(tube);
+      // ride it: jump pad up to the deck, slide gate whooshes you down the tube
+      jumpPad(t[0]-sx*5.5, t[1]-sz*5.5, 23, [t[0],t[1]]);
+      slideRide([t[0]-sx*3.2, 10.6, t[1]-sz*3.2], [t[0]*0.62,5.6,t[1]*0.62], [t[0]*0.30,0.6,t[1]*0.30], t[2]);
     });
     // palm trees
     [[-8,-34],[8,-34],[-38,-8],[38,8],[12,36],[-12,36]].forEach(p=>tree(p[0],p[1],5,0x9a7a4a,0x3f9e63));
@@ -841,6 +882,9 @@ const BUILDERS={
     // scaffolding with plank deck
     [[20,14],[26,14],[20,22],[26,22]].forEach(p=>cyl(0.3,7,p[0],3.5,p[1],0x8a8f96));
     box(9,0.5,11, 23,7.2,18, 0x6b5f4e);
+    // jump pads onto the second floor and the scaffold deck
+    jumpPad(0,7,21,[0,-13]);
+    jumpPad(23,28,20,[23,18]);
     // hazard-striped barriers
     const hazard=makeTex(64,(ctx,s)=>{
       ctx.fillStyle='#e8b429'; ctx.fillRect(0,0,s,s);
@@ -916,6 +960,7 @@ const BUILDERS={
     const lake=new THREE.Mesh(new THREE.CylinderGeometry(12,12,0.15,30),
       new THREE.MeshPhongMaterial({color:0x9fd8e8,shininess:120,specular:0xffffff,transparent:true,opacity:0.9}));
     lake.position.set(0,0.1,0); scene.add(lake);
+    iceZones.push({x:0,z:0,r:12});                   // the lake is slick — you skid on it
     // translucent ice monoliths
     function ice(w,h,d,x,z,rot){
       const m=box(w,h,d, x,h/2,z, 0xbfe6f2);
@@ -1031,7 +1076,8 @@ function peerName(pid){
 function inMp(){ return G && G.mode==='mp' && room; }
 function mpPlayingPeers(){
   if(!room) return [];
-  return room.peers().filter(p=>p.kind==='viewer' && !p.isMe && p.presence
+  // exclude only THIS tab — your own other tabs/devices are valid rivals (and how you test)
+  return room.peers().filter(p=>p.kind==='viewer' && !p.sameTab && p.presence
     && p.presence.playing===true && p.presence.map===save.map);
 }
 function syncRemotes(){
@@ -1117,9 +1163,32 @@ document.addEventListener('pointerlockchange',()=>{
 function currentWeapon(){ return WEAPONS.find(w=>w.id===G.wep); }
 function switchWeapon(id){
   if(!save.owned.includes(id) || G.wep===id) return;
+  // each gun keeps its own magazine; switching cancels a reload instead of finishing it
+  G.ammoBy[G.wep]=G.ammo;
+  G.reloading=0; $('reload-note').textContent='';
   G.wep=id; const w=currentWeapon();
-  G.ammo=w.mag; G.reloading=0; G.cd=0.3;
+  G.ammo = G.ammoBy[id]!=null ? G.ammoBy[id] : w.mag;
+  G.cd=0.3;
   buildViewModel(); updateHUD(); renderSlots();
+}
+function fullAmmo(){ G.ammoBy={}; save.owned.forEach(id=>{ G.ammoBy[id]=currentWeaponIdMag(id); }); G.ammo=currentWeapon().mag; G.reloading=0; $('reload-note').textContent=''; }
+/* random spawn point clear of obstacles and away from `avoid` positions */
+function freeSpot(avoid,minDist){
+  for(let i=0;i<40;i++){
+    const x=(Math.random()*2-1)*38, z=(Math.random()*2-1)*38;
+    let ok=true;
+    for(const c of colliders){ if(c.minY<2 && x>c.minX-1.2 && x<c.maxX+1.2 && z>c.minZ-1.2 && z<c.maxZ+1.2){ ok=false; break; } }
+    if(!ok) continue;
+    for(const a of avoid){ const dx=a.x-x, dz=a.z-z; if(dx*dx+dz*dz<minDist*minDist){ ok=false; break; } }
+    if(ok) return [x,0,z];
+  }
+  return null;
+}
+function livingFoes(){
+  const arr=[];
+  if(G.bots) G.bots.forEach(b=>{ if(b.alive) arr.push(b.mesh.position); });
+  remotes.forEach(r=>arr.push(r.mesh.position));
+  return arr;
 }
 function startReload(){
   const w=currentWeapon();
@@ -1156,19 +1225,25 @@ function startGame(){
   scene=new THREE.Scene(); colliders=[]; solidMeshes=[]; tracers.length=0; particles.length=0;
   scene.add(camera);
   const mode=(save.mode==='mp' && room)?'mp':'solo';
-  mapAnims.length=0;
+  mapAnims.length=0; mapPads.length=0; mapSlides.length=0; iceZones.length=0;
   const def=BUILDERS[save.map]();
   const mapName=MAP_LIST.find(m=>m.id===save.map).name;
-  G={ over:false, mode, wep:save.equipped, ammo:currentWeaponIdMag(save.equipped), reserve:Infinity,
+  const roundsWon=save.roundsWon||0;
+  G={ over:false, mode, wep:save.equipped, ammo:currentWeaponIdMag(save.equipped), ammoBy:{}, reserve:Infinity,
       cd:0, reloading:0, hp:100, lastHurt:-99, kills:0, deaths:0, dead:false, deadT:0,
-      pos:new THREE.Vector3(def.spawn[0],0,def.spawn[2]), vy:0, onGround:true,
-      bots:[], mapName, shake:0, rockets:[], t:0, diff:0, diffTier:0 };
+      pos:new THREE.Vector3(def.spawn[0],0,def.spawn[2]), vy:0, onGround:true, mvel:new THREE.Vector3(), slide:null,
+      bots:[], mapName, def, shake:0, rockets:[], t:0, diff:0, diffTier:0,
+      baseDiff:Math.min(0.5, roundsWon*0.08) };
   lastAttacker=null;
-  if(mode==='solo') BOT_NAMES.forEach((n,i)=>G.bots.push(makeBot(n, def.bots[i%def.bots.length])));
-  else {
-    // spread multiplayer spawns so players don't stack
-    const sp=def.bots[Math.floor(Math.random()*def.bots.length)];
-    if(Math.random()<0.5) G.pos.set(sp[0],0,sp[2]);
+  fullAmmo();
+  // randomized player spawn every round
+  const ps=freeSpot([], 0); if(ps) G.pos.set(ps[0],0,ps[2]);
+  if(mode==='solo'){
+    const nBots=4+Math.min(2, Math.floor(roundsWon/2));   // more rivals as you rack up wins
+    for(let i=0;i<nBots;i++){
+      const sp=freeSpot([G.pos,...G.bots.map(b=>b.mesh.position)], 16) || def.bots[i%def.bots.length];
+      G.bots.push(makeBot(BOT_NAMES[i%BOT_NAMES.length], sp));
+    }
   }
   faceCenter();
   if(mode==='mp')
@@ -1180,6 +1255,7 @@ function startGame(){
   $('feed').innerHTML=''; $('s-you').textContent='0'; $('s-foe').textContent='0';
   document.querySelector('#score-box .goal').textContent = mode==='mp' ? 'FIRST TO 10 · LIVE' : 'FIRST TO 10';
   if(mode==='mp') feed(`Playing as <b>${esc(save.name)}</b> — rivals on ${mapName} can see you`);
+  else feed(roundsWon>0 ? `Rounds won: <b>${roundsWon}</b> — ${G.bots.length} rivals, sharper than last time` : `${G.bots.length} rivals on ${mapName}. They get sharper the longer you survive.`);
   renderWallet(); renderSlots(); updateHUD();
   lockPointer();
 }
@@ -1367,7 +1443,7 @@ function creditKill(victimName,head){
 function endRound(won,winnerName){
   G.over=true; document.exitPointerLock && document.exitPointerLock();
   $('death').style.display='none';
-  if(won){ save.bombs+=WIN_BONUS; persist(); }
+  if(won){ save.bombs+=WIN_BONUS; if(!inMp()) save.roundsWon=(save.roundsWon||0)+1; persist(); }
   if(inMp()) room.presence({playing:false}).catch(()=>{});
   $('end-title').textContent=won?'Victory':'Defeat';
   $('end-title').className='big '+(won?'win':'lose');
@@ -1396,8 +1472,9 @@ function botLOS(bot,targetPos){
 function stepBot(bot,dt){
   if(!bot.alive){
     bot.respawn-=dt;
-    if(bot.respawn<=0){ bot.alive=true; bot.hp=100; bot.mesh.visible=true;
-      bot.mesh.position.set(bot.spawnAt[0],0,bot.spawnAt[2]); }
+    if(bot.respawn<=0){ bot.alive=true; bot.hp=100; bot.mesh.visible=true; bot.windup=0;
+      const sp=freeSpot([G.pos,...livingFoes()], 16) || bot.spawnAt;   // never the same corner twice
+      bot.mesh.position.set(sp[0],0,sp[2]); bot.target=null; }
     return;
   }
   const eye=camera.getWorldPosition(new THREE.Vector3());
@@ -1464,32 +1541,65 @@ function animate(){
 
   /* player movement */
   if(!G.dead){
-    const f=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
-    const r=new THREE.Vector3(-f.z,0,f.x);
-    const move=new THREE.Vector3();
-    if(KEY['KeyW']||KEY['ArrowUp'])move.add(f); if(KEY['KeyS']||KEY['ArrowDown'])move.sub(f);
-    if(KEY['KeyD']||KEY['ArrowRight'])move.add(r); if(KEY['KeyA']||KEY['ArrowLeft'])move.sub(r);
-    const sprint=KEY['ShiftLeft']||KEY['ShiftRight'];
-    if(move.lengthSq()>0) move.normalize().multiplyScalar((sprint?9.4:6.4)*dt);
-    G.pos.add(move);
-    collide(G.pos);
-    // gravity / jump
-    const gy=groundAt(G.pos);
-    if(KEY['Space'] && G.onGround){ G.vy=7.6; G.onGround=false; }
-    G.vy-=22*dt; G.pos.y+=G.vy*dt;
-    if(G.pos.y<=gy){ G.pos.y=gy; G.vy=0; G.onGround=true; } else G.onGround=false;
+    if(G.slide){
+      // riding a slide: follow a curve from the gate, through the tube, to the splash-down
+      const s=G.slide; s.t+=dt/1.15;
+      if(s.t>=1){
+        G.pos.copy(s.to); G.slide=null; G.vy=2.5; G.onGround=false;
+        G.mvel.copy(s.to.clone().sub(s.mid).setY(0).normalize().multiplyScalar(7));
+        burst(G.pos.clone().add(new THREE.Vector3(0,0.4,0)), 0x9fe8f5, 18, 5, 0.12); sfx('hit');
+      } else {
+        const a=s.t, ia=1-a;
+        G.pos.set(ia*ia*s.from.x + 2*ia*a*s.mid.x + a*a*s.to.x,
+                  ia*ia*s.from.y + 2*ia*a*s.mid.y + a*a*s.to.y,
+                  ia*ia*s.from.z + 2*ia*a*s.mid.z + a*a*s.to.z);
+        G.vy=0;
+      }
+    } else {
+      const f=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+      const r=new THREE.Vector3(-f.z,0,f.x);
+      const move=new THREE.Vector3();
+      if(KEY['KeyW']||KEY['ArrowUp'])move.add(f); if(KEY['KeyS']||KEY['ArrowDown'])move.sub(f);
+      if(KEY['KeyD']||KEY['ArrowRight'])move.add(r); if(KEY['KeyA']||KEY['ArrowLeft'])move.sub(r);
+      const sprint=KEY['ShiftLeft']||KEY['ShiftRight'];
+      if(move.lengthSq()>0) move.normalize().multiplyScalar(sprint?9.4:6.4);
+      // momentum: instant on normal ground, a long skid on ice
+      let onIce=false;
+      for(const iz of iceZones){ const dx=G.pos.x-iz.x, dz=G.pos.z-iz.z; if(G.pos.y<0.6 && dx*dx+dz*dz<iz.r*iz.r){ onIce=true; break; } }
+      G.mvel.lerp(move, Math.min(1,(onIce?2.4:20)*dt));
+      G.pos.add(G.mvel.clone().multiplyScalar(dt));
+      collide(G.pos);
+      // gravity / jump
+      const gy=groundAt(G.pos);
+      if(KEY['Space'] && G.onGround){ G.vy=7.6; G.onGround=false; }
+      G.vy-=22*dt; G.pos.y+=G.vy*dt;
+      if(G.pos.y<=gy){ G.pos.y=gy; G.vy=0; G.onGround=true; } else G.onGround=false;
+      // jump pads
+      for(const p of mapPads){
+        if(p.cd>0){ p.cd-=dt; continue; }
+        const dx=G.pos.x-p.x, dz=G.pos.z-p.z;
+        if(dx*dx+dz*dz<p.r*p.r && G.pos.y<0.8){
+          p.cd=0.6; G.vy=p.vy; G.onGround=false; sfx('boom'); G.shake=Math.min(0.6,G.shake+0.25);
+          burst(new THREE.Vector3(p.x,0.4,p.z), 0x35d0ba, 14, 5, 0.1);
+          if(p.pushTo) G.mvel.copy(new THREE.Vector3(p.pushTo[0]-p.x,0,p.pushTo[1]-p.z).normalize().multiplyScalar(3.5));
+        }
+      }
+      // slide gates
+      for(const s of mapSlides){
+        if(G.pos.distanceTo(s.from)<1.7){ G.slide={t:0, from:s.from, mid:s.mid, to:s.to}; sfx('buy'); break; }
+      }
+    }
     // regen
     if(G.t-G.lastHurt>4 && G.hp<100){ G.hp=Math.min(100,G.hp+18*dt); updateHUD(); }
-    // auto fire
-    const w=currentWeapon();
-    if(firing && w.auto) tryFire();
+    // hold-to-fire works on every weapon; fire rate is the balance
+    if(firing) tryFire();
   } else {
     G.deadT-=dt; $('death-t').textContent=Math.ceil(Math.max(0,G.deadT));
     if(G.deadT<=0 && !G.over){
-      G.dead=false; G.hp=100; G.vy=0;
-      const sp=[[0,38],[-34,-34],[34,-34],[-34,30],[34,30]][Math.floor(Math.random()*(inMp()?5:1))];
-      G.pos.set(sp[0],0,sp[1]); faceCenter();
-      const w=currentWeapon(); G.ammo=w.mag; G.reloading=0;
+      G.dead=false; G.hp=100; G.vy=0; G.mvel.set(0,0,0); G.slide=null;
+      const sp=freeSpot(livingFoes(), 14) || G.def.spawn;
+      G.pos.set(sp[0],0,sp[2]); faceCenter();
+      fullAmmo();
       if(inMp()) room.presence({dead:false}).catch(()=>{});
       $('death').style.display='none'; $('dmgvig').style.opacity=0; updateHUD();
     }
@@ -1531,7 +1641,7 @@ function animate(){
     $('s-foe').textContent=best;
   } else {
     // difficulty ramps with time survived and your kills
-    G.diff=Math.min(1, G.t/150 + G.kills*0.05);
+    G.diff=Math.min(1, G.baseDiff + G.t/150 + G.kills*0.05);
     const tier=G.diff>=1?3:G.diff>=0.66?2:G.diff>=0.33?1:0;
     if(tier>G.diffTier){
       G.diffTier=tier;
@@ -1597,11 +1707,15 @@ canvas.addEventListener('click',()=>{ if(G && !G.over && !G.paused && document.p
   room.onPeers(ch=>{
     const me=ch.peers.find(p=>p.isMe && p.sameTab);
     if(me) myPeerId=me.peer;
-    const others=ch.peers.filter(p=>p.kind==='viewer' && !p.isMe).length;
-    st.textContent= others>0 ? `Online — ${others} rival${others>1?'s':''} here` : 'Online — waiting for rivals';
+    const others=ch.peers.filter(p=>p.kind==='viewer' && !p.sameTab);
+    const playing=others.filter(p=>p.presence && p.presence.playing===true);
+    st.textContent= others.length>0
+      ? `Online — ${others.length} rival${others.length>1?'s':''} here`+
+        (playing.length?` · ${playing.length} in battle on ${esc(String(playing[0].presence.map||''))}`:'')
+      : 'Online — waiting for rivals (share this page!)';
   }, ()=>{ st.classList.add('off'); st.textContent='Connection lost — solo still works'; $('mode-mp').disabled=true; });
   room.on('hit', msg=>{
-    if(!inMp() || G.over || G.dead || msg.isMe) return;
+    if(!inMp() || G.over || G.dead || msg.sameTab) return;
     const d=msg.data;
     if(!d || d.target!==myPeerId) return;
     const dmg=Math.max(1,Math.min(150,Math.round(+d.dmg)||0));
@@ -1609,7 +1723,7 @@ canvas.addEventListener('click',()=>{ if(G && !G.over && !G.paused && document.p
     hurtPlayer(dmg, peerName(msg.peer), msg.peer, d.head===true, shooter?shooter.mesh.position:null);
   });
   room.on('death', msg=>{
-    if(!inMp() || msg.isMe) return;
+    if(!inMp() || msg.sameTab) return;
     const d=msg.data||{};
     const victim=peerName(msg.peer);
     const r=remotes.get(msg.peer);
@@ -1618,7 +1732,7 @@ canvas.addEventListener('click',()=>{ if(G && !G.over && !G.paused && document.p
     else feed(`<b>${esc(victim)}</b> was eliminated`, true);
   });
   room.on('shot', msg=>{
-    if(!inMp() || msg.isMe) return;
+    if(!inMp() || msg.sameTab) return;
     const d=msg.data;
     if(!d || !Array.isArray(d.f) || !Array.isArray(d.t) || d.f.length!==3 || d.t.length!==3) return;
     const f=d.f.map(Number), t=d.t.map(Number);
@@ -1626,7 +1740,7 @@ canvas.addEventListener('click',()=>{ if(G && !G.over && !G.paused && document.p
     addTracer(new THREE.Vector3(f[0],f[1],f[2]), new THREE.Vector3(t[0],t[1],t[2]), 0xff6b6b);
   });
   room.on('win', msg=>{
-    if(!inMp() || msg.isMe || G.over) return;
+    if(!inMp() || msg.sameTab || G.over) return;
     endRound(false, peerName(msg.peer));
   });
 })();
