@@ -35,6 +35,26 @@
   .acct input{background:var(--bg); border:1px solid var(--line); border-radius:7px; color:var(--text); padding:5px 10px;
     font-size:12px; width:150px; text-transform:uppercase; letter-spacing:1px; font-family:Rubik,sans-serif;}
   .acct input:focus{outline:2px solid var(--accent);}
+  .progress-card{width:min(660px,100%); margin-top:10px; display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .progress-stat{background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 10px; text-align:center;}
+  .progress-stat b{display:block; color:var(--accent2); font-family:'Russo One',Rubik,sans-serif; font-size:18px;}
+  .progress-stat small{color:var(--dim); font-size:10px; text-transform:uppercase; letter-spacing:1px;}
+  .account-note{width:min(660px,100%); margin-top:7px; color:var(--dim); font-size:11px; text-align:center; line-height:1.4;}
+  .file-input{display:none;}
+  .event-panel{width:min(980px,100%); margin-top:18px; padding:14px; background:linear-gradient(135deg,rgba(102,67,18,.35),rgba(26,33,48,.9)); border:1px solid #806324; border-radius:12px;}
+  .event-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .event-title{font-family:'Russo One',Rubik,sans-serif; color:var(--gold); letter-spacing:1px;}
+  .event-copy{color:var(--dim); font-size:12px; line-height:1.45; margin-top:5px;}
+  .event-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
+  .event-box{background:rgba(10,13,19,.35); border:1px solid rgba(255,209,102,.2); border-radius:8px; padding:9px;}
+  .event-box h3{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--accent2); margin-bottom:6px;}
+  .event-task{font-size:11px; color:var(--dim); line-height:1.5;}
+  .event-task.done{color:var(--own); text-decoration:line-through;}
+  .loot-row{display:flex; justify-content:space-between; gap:8px; font-size:11px; color:var(--dim); border-bottom:1px solid rgba(255,255,255,.06); padding:3px 0;}
+  .loot-row b{color:var(--text); font-weight:500;}
+  .loot-row em{color:var(--gold); font-style:normal;}
+  @media (max-width:620px){ .event-grid{grid-template-columns:1fr;} }
+  @media (max-width:520px){ .progress-card{grid-template-columns:repeat(2,1fr);} }
   .section{width:min(980px,100%); margin-top:26px;}
   .section > h2{font-family:'Russo One',Rubik,sans-serif; font-size:15px; letter-spacing:2.5px;
     text-transform:uppercase; color:var(--dim); margin-bottom:12px;}
@@ -76,6 +96,7 @@
   .wbtn.buy:disabled{background:#2a3348; color:#5d6982; cursor:not-allowed; filter:none;}
   .wbtn.equip{background:var(--panel2); color:var(--text); border:1px solid var(--line);}
   .wbtn.equipped{background:var(--own); color:#06201c; cursor:default;}
+  .wbtn.test{background:#313b55; color:#dce6ff; border:1px solid #566788;}
   .playbtn{margin-top:30px; font-family:'Russo One',Rubik,sans-serif; font-size:22px; letter-spacing:3px;
     text-transform:uppercase; background:var(--accent); color:#1a1006; border:none; border-radius:14px;
     padding:18px 64px; cursor:pointer; box-shadow:0 8px 30px rgba(255,122,47,.35); transition:transform .1s, filter .1s;}
@@ -180,6 +201,7 @@
   <div class="tag">Deathmatch shooter &middot; first to 10 eliminations wins the round</div>
   <div class="wallet">💣 <span id="wallet-n">0</span> <small>bombs</small></div>
   <div class="acct" id="acct"><span>Checking cloud saves…</span></div>
+  <div class="event-panel" id="event-panel"></div>
 
   <div class="section">
     <h2><span>01</span> Game mode</h2>
@@ -275,6 +297,26 @@ const WEAPONS = [
   {id:'warhawk', name:'Warhawk',    price:700,  dmg:22, cd:0.17, auto:true,  mag:20, reload:1.6, pellets:1, spread:0.016, desc:'Battle rifle with real stopping power at any range.', color:0x4fa3d1},
   {id:'longshot',name:'Longshot',   price:1200, dmg:95, cd:1.4,  auto:false, mag:5,  reload:2.2, pellets:1, spread:0.001, desc:'Bolt sniper. One shot, one very bad day for a rival.', color:0x2ecc71},
   {id:'meganuke',name:'Mega Launcher',price:2000,dmg:120,cd:1.8, auto:false, mag:1,  reload:2.4, pellets:1, spread:0.0, rocket:true, desc:'Rocket launcher. Splash damage — mind your own feet.', color:0xff7a2f},
+  {id:'railgun',name:'Railgun',price:2400,dmg:145,cd:1.9,auto:false,mag:3,reload:2.8,pellets:1,spread:0,desc:'Charged precision cannon that punches through the arena.',color:0x62e6ff},
+  {id:'scatter',name:'Scatterbyte',price:950,dmg:7,cd:0.72,auto:false,mag:8,reload:1.7,pellets:12,spread:0.11,desc:'A chaotic close-range digital shotgun.',color:0xff8f66},
+  {id:'pulse',name:'Pulse Rifle',price:1100,dmg:17,cd:0.12,auto:true,mag:24,reload:1.5,pellets:1,spread:0.02,desc:'Stable energy bursts for mid-range fights.',color:0x8e9dff},
+  {id:'needle',name:'Needler',price:850,dmg:24,cd:0.22,auto:true,mag:18,reload:1.3,pellets:1,spread:0.018,desc:'Fast darts that reward controlled tracking.',color:0xf06bdc},
+  {id:'frostbite',name:'Frostbite',price:1350,dmg:70,cd:0.9,auto:false,mag:6,reload:2.1,pellets:1,spread:0.004,desc:'Cryo rounds hit hard and leave a cold trail.',color:0xa9f2ff},
+  {id:'sunflare',name:'Sunflare',price:1500,dmg:52,cd:0.3,auto:true,mag:12,reload:1.8,pellets:1,spread:0.02,desc:'Rapid solar bolts with bright muzzle flash.',color:0xffd166},
+  {id:'vortex',name:'Vortex',price:1800,dmg:90,cd:1.1,auto:false,mag:4,reload:2.3,pellets:1,spread:0.01,desc:'Gravity-charged shots with a wide impact feel.',color:0xb57cff},
+  {id:'sawblade',name:'Sawblade',price:1250,dmg:30,cd:0.16,auto:true,mag:30,reload:2.0,pellets:1,spread:0.04,desc:'A noisy shredder for aggressive close pressure.',color:0xd2d7de},
+  {id:'cinder',name:'Cinder',price:1000,dmg:28,cd:0.19,auto:true,mag:20,reload:1.6,pellets:1,spread:0.025,desc:'Hot rounds that keep the pressure on.',color:0xff6347},
+  {id:'trident',name:'Trident',price:1600,dmg:35,cd:0.5,auto:false,mag:9,reload:1.9,pellets:3,spread:0.045,desc:'Three-pronged burst fire for fearless duelists.',color:0x48d6bb},
+  {id:'echo',name:'Echo',price:1450,dmg:20,cd:0.1,auto:true,mag:32,reload:2.1,pellets:1,spread:0.035,desc:'High-capacity repeater with a rhythmic kick.',color:0xe5a4ff},
+  {id:'quake',name:'Quake',price:2100,dmg:80,cd:1.3,auto:false,mag:2,reload:2.5,pellets:1,spread:0.02,rocket:true,desc:'Impact shells that punish clustered rivals.',color:0xff9d4d},
+  {id:'silencer',name:'Silencer',price:1300,dmg:26,cd:0.2,auto:true,mag:22,reload:1.5,pellets:1,spread:0.008,desc:'Quiet, accurate and built for patient hunters.',color:0x6d7a8f},
+  {id:'comet',name:'Comet',price:1750,dmg:58,cd:0.42,auto:false,mag:10,reload:1.9,pellets:1,spread:0.012,desc:'Meteoric slugs with reliable damage at range.',color:0xffb36b},
+  {id:'thorn',name:'Thorn',price:1050,dmg:13,cd:0.06,auto:true,mag:40,reload:2.2,pellets:1,spread:0.055,desc:'A spray weapon for players who never stop moving.',color:0x7aff91},
+  {id:'monarch',name:'Monarch',price:1900,dmg:48,cd:0.28,auto:true,mag:14,reload:1.8,pellets:1,spread:0.01,desc:'Elegant burst pistol with a sharp damage curve.',color:0xffe07a},
+  {id:'abyss',name:'Abyss',price:2300,dmg:110,cd:1.6,auto:false,mag:3,reload:2.6,pellets:1,spread:0.002,desc:'A dark-matter rifle for decisive finishers.',color:0x514b9b},
+  {id:'flaregun',name:'Flaregun',price:900,dmg:45,cd:0.7,auto:false,mag:5,reload:1.6,pellets:1,spread:0.03,rocket:true,desc:'Bright explosive rounds with forgiving splash.',color:0xff5c8a},
+  {id:'atlas',name:'Atlas',price:2200,dmg:38,cd:0.34,auto:true,mag:18,reload:2.0,pellets:1,spread:0.014,desc:'Heavy all-purpose rifle with dependable control.',color:0x9cae8a},
+  {id:'prism',name:'Prism',price:2000,dmg:31,cd:0.18,auto:true,mag:25,reload:1.7,pellets:1,spread:0.018,desc:'Refraction rounds balance speed and power.',color:0xff7ef2},
 ];
 const MAP_LIST = [
   {id:'arena',        name:'Arena',        desc:'Golden-hour colosseum. Torch-lit columns, banners and a tiered core.'},
@@ -302,6 +344,26 @@ const SKINS=[
   {id:'longshot-viper',  wep:'longshot', name:'Viper',         price:650, color:0x2fd08a},
   {id:'meganuke-inferno',wep:'meganuke', name:'Inferno',       price:750, color:0xff3d1f},
   {id:'meganuke-plasma', wep:'meganuke', name:'Plasma Core',   price:900, color:0x6fc9ff},
+  {id:'railgun-aurora',wep:'railgun',name:'Aurora',price:1000,color:0x8ffff1},
+  {id:'scatter-bone',wep:'scatter',name:'Bone Shard',price:650,color:0xe8d7bd},
+  {id:'pulse-cobalt',wep:'pulse',name:'Cobalt',price:700,color:0x3f7dff},
+  {id:'needle-rose',wep:'needle',name:'Rose Needle',price:580,color:0xff85b8},
+  {id:'frostbite-mirror',wep:'frostbite',name:'Mirror Ice',price:900,color:0xd7fbff},
+  {id:'sunflare-corona',wep:'sunflare',name:'Corona',price:950,color:0xffa62b},
+  {id:'vortex-orbit',wep:'vortex',name:'Orbit',price:1100,color:0x9e7aff},
+  {id:'sawblade-oxide',wep:'sawblade',name:'Oxide',price:760,color:0xb86b4d},
+  {id:'cinder-ash',wep:'cinder',name:'Ash',price:720,color:0x8b95a4},
+  {id:'trident-tide',wep:'trident',name:'Tide',price:880,color:0x4bd8e8},
+  {id:'echo-vinyl',wep:'echo',name:'Vinyl',price:840,color:0x663f76},
+  {id:'quake-fault',wep:'quake',name:'Faultline',price:1050,color:0xc86d3d},
+  {id:'silencer-slate',wep:'silencer',name:'Slate',price:790,color:0x455269},
+  {id:'comet-tail',wep:'comet',name:'Tailfire',price:980,color:0xff7143},
+  {id:'thorn-vine',wep:'thorn',name:'Vine',price:650,color:0x39c56c},
+  {id:'monarch-royal',wep:'monarch',name:'Royal',price:1000,color:0xb58bff},
+  {id:'abyss-rift',wep:'abyss',name:'Rift',price:1200,color:0x222042},
+  {id:'flaregun-signal',wep:'flaregun',name:'Signal',price:600,color:0xffc0d4},
+  {id:'atlas-sand',wep:'atlas',name:'Sandstorm',price:1050,color:0xd3b37b},
+  {id:'prism-spectrum',wep:'prism',name:'Spectrum',price:1150,color:0x9cffde},
 ];
 /* Wraps — universal finishes layered on any gun (tint + grip + glow) */
 const WRAPS=[
@@ -311,6 +373,26 @@ const WRAPS=[
   {id:'galaxy', name:'Galaxy',       price:800, desc:'Deep-space purple with a soft nebula glow.', accent:0x1a1033, tint:0x5a3fa0, glow:0x7a5cff},
   {id:'ember',  name:'Ember Glow',   price:700, desc:'Charred steel that smolders orange from within.', accent:0x1c1410, tint:0x4a3428, glow:0xff7a2f},
   {id:'neon',   name:'Neon Circuit', price:950, desc:'Blacklight shell over electric-teal circuitry.', accent:0x0c1f1c, tint:0x123c36, glow:0x35d0ba},
+  {id:'rust',name:'Ruststorm',price:500,desc:'Weathered iron and orange sparks.',accent:0x2a1710,tint:0x8d4425,glow:0xff6b2c},
+  {id:'opal',name:'Opal Mist',price:700,desc:'Pearlescent shell with shifting color.',accent:0x263448,tint:0x8ad6d0,glow:0xd6a8ff},
+  {id:'royal',name:'Royal Velvet',price:800,desc:'Deep velvet purple with gold trim.',accent:0x251333,tint:0x613d91,glow:0xffd166},
+  {id:'hazard',name:'Hazard Tape',price:450,desc:'Black-and-yellow warning stripes.',accent:0x171717,tint:0xd5aa26,glow:null},
+  {id:'snow',name:'Snowblind',price:600,desc:'Cold white polymer made for glaciers.',accent:0xa9c4d5,tint:0xe9f7ff,glow:0x9ee8ff},
+  {id:'jungle',name:'Jungle Camo',price:550,desc:'Leaf-green pattern for ambush artists.',accent:0x172516,tint:0x4b7d35,glow:null},
+  {id:'lava',name:'Lavaflow',price:850,desc:'Cracked basalt with a molten core.',accent:0x2b0e0b,tint:0x7c2114,glow:0xff3d1f},
+  {id:'plasma',name:'Plasma Bloom',price:900,desc:'Soft violet energy under clear armor.',accent:0x231c3e,tint:0x7554db,glow:0xd27aff},
+  {id:'sakura',name:'Sakura',price:650,desc:'Petal pink lacquer and dark wood grip.',accent:0x2c1423,tint:0xf28aae,glow:null},
+  {id:'deepsea',name:'Deep Sea',price:750,desc:'Pressure-forged blue steel.',accent:0x071c2d,tint:0x12618e,glow:0x2fd9ff},
+  {id:'circuit',name:'Circuit Board',price:800,desc:'Copper traces on a midnight board.',accent:0x101a16,tint:0x34634f,glow:0x71ffb1},
+  {id:'chalk',name:'Chalkline',price:400,desc:'Clean white marks on graphite.',accent:0x20252d,tint:0xcdd5df,glow:null},
+  {id:'toxic',name:'Toxic Spill',price:700,desc:'Acid green warning glow.',accent:0x14210f,tint:0x68a51e,glow:0xcaff37},
+  {id:'midnight',name:'Midnight',price:500,desc:'A nearly black finish for quiet operators.',accent:0x070a11,tint:0x171d2a,glow:0x415b8f},
+  {id:'copper',name:'Copperhead',price:600,desc:'Warm copper plating with a serpent bite.',accent:0x27150e,tint:0xb96839,glow:null},
+  {id:'cloud',name:'Cloud Nine',price:720,desc:'Soft silver with a sky-blue glow.',accent:0x8fa5b7,tint:0xd8e8f4,glow:0x8acbff},
+  {id:'hologram',name:'Hologram',price:1000,desc:'Transparent rainbow interference coating.',accent:0x1c2040,tint:0x8d73d6,glow:0x55e6ff},
+  {id:'moss',name:'Mossbound',price:450,desc:'Old stone and living green.',accent:0x172018,tint:0x56704a,glow:null},
+  {id:'royalblue',name:'Royal Blue',price:650,desc:'A bright blue ceremonial finish.',accent:0x101c38,tint:0x315be8,glow:0x6c91ff},
+  {id:'emberglass',name:'Emberglass',price:950,desc:'Dark glass with a red-hot inner glow.',accent:0x241014,tint:0x7c2736,glow:0xff654e},
 ];
 const KILL_REWARD=30, HEADSHOT_REWARD=45, WIN_BONUS=150, ROUND_GOAL=10;
 const BOT_NAMES=['RIVAL-ACE','RIVAL-NYX','RIVAL-BOLT','RIVAL-DUKE','RIVAL-ZED','RIVAL-KAI'];
@@ -319,7 +401,8 @@ const BOT_NAMES=['RIVAL-ACE','RIVAL-NYX','RIVAL-BOLT','RIVAL-DUKE','RIVAL-ZED','
 function defaults(){
   return {bombs:150, owned:['blaster'], equipped:'blaster', map:'arena', mode:'solo',
           name:'RIVAL-'+Math.floor(1000+Math.random()*9000),
-          ownedSkins:[], skins:{}, ownedWraps:[], wrap:null, roundsWon:0, updatedAt:0};
+          ownedSkins:[], skins:{}, ownedWraps:[], wrap:null, roundsWon:0, level:1, xp:0, totalKills:0, headshots:0,
+          eventKey:'', eventCasesEarned:0, eventCasesOpened:0, eventTasks:[], eventStats:{kills:0,headshots:0,wins:0,bombs:0,damage:0}, updatedAt:0};
 }
 function loadSave(){
   const d=defaults();
@@ -328,12 +411,98 @@ function loadSave(){
   return d;
 }
 const save=loadSave();
+const EVENT_LOOT=[
+  {kind:'weapon',id:'railgun',name:'Railgun',chance:0.25},
+  {kind:'weapon',id:'abyss',name:'Abyss',chance:0.75},
+  {kind:'skin',id:'prism-spectrum',name:'Spectrum Skin',chance:2},
+  {kind:'skin',id:'pulse-cobalt',name:'Hologram Skin',chance:4},
+  {kind:'wrap',id:'hologram',name:'Hologram Wrap',chance:3},
+  {kind:'wrap',id:'emberglass',name:'Emberglass Wrap',chance:7},
+  {kind:'wrap',id:'gold',name:'Gold Plate Wrap',chance:12},
+  {kind:'other',id:'bombs-500',name:'500 Bombs',chance:20},
+  {kind:'other',id:'xp-500',name:'500 XP',chance:25},
+  {kind:'other',id:'bombs-150',name:'150 Bombs',chance:26},
+];
+const EVENT_TASKS=[
+  ...[10,25,45,70,100].map((target,i)=>({label:`Eliminate ${target} rivals`,metric:'kills',target})),
+  ...[3,8,15,25,40].map((target,i)=>({label:`Land ${target} headshots`,metric:'headshots',target})),
+  ...[1,2,4,7,10].map((target,i)=>({label:`Win ${target} rounds`,metric:'wins',target})),
+  ...[300,900,1800,3000,5000].map((target,i)=>({label:`Earn ${target} event bombs`,metric:'bombs',target})),
+  ...[100,300,600,1000,1500].map((target,i)=>({label:`Deal ${target} damage to rivals`,metric:'damage',target})),
+];
+function eventDay(year,month){ let h=2166136261; for(const c of `${year}-${month}-golden-cases`){h=Math.imul(h^c.charCodeAt(0),16777619);} return 2+((h>>>0)%27); }
+function eventInfo(date=new Date()){
+  const year=date.getFullYear(), month=date.getMonth(), day=eventDay(year,month), today=date.getDate();
+  return {key:`${year}-${String(month+1).padStart(2,'0')}`,day,active:today===day,warning:today===day-1,daysUntil:day-today};
+}
+function ensureEventState(){
+  const info=eventInfo();
+  if(save.eventKey!==info.key){ save.eventKey=info.key; save.eventCasesEarned=0; save.eventCasesOpened=0; save.eventTasks=[]; save.eventStats={kills:0,headshots:0,wins:0,bombs:0,damage:0}; save.updatedAt=0; saveLocal(); }
+  if(!Array.isArray(save.eventTasks)) save.eventTasks=[];
+  if(!save.eventStats) save.eventStats={kills:0,headshots:0,wins:0,bombs:0,damage:0};
+  while(save.eventTasks.length<EVENT_TASKS.length) save.eventTasks.push(false);
+}
+function eventLootText(){ return EVENT_LOOT.map(x=>`<div class="loot-row"><b>${esc(x.name)}</b><em>${x.chance}%</em></div>`).join(''); }
+function updateEventProgress(){
+  ensureEventState(); const info=eventInfo();
+  if(!info.active) return;
+  EVENT_TASKS.forEach((task,i)=>{ if(!save.eventTasks[i] && (+save.eventStats[task.metric]||0)>=task.target) save.eventTasks[i]=true; });
+  const completed=save.eventTasks.filter(Boolean).length;
+  save.eventCasesEarned=Math.min(5,Math.floor(completed/5));
+  persist(); renderEvent();
+}
+function openGoldenCase(){
+  ensureEventState(); const info=eventInfo();
+  if(!info.active || save.eventCasesOpened>=save.eventCasesEarned || save.eventCasesOpened>=5) return;
+  save.eventCasesOpened++;
+  const roll=Math.random()*100; let cursor=0, reward=EVENT_LOOT[EVENT_LOOT.length-1];
+  for(const item of EVENT_LOOT){ cursor+=item.chance; if(roll<cursor){reward=item;break;} }
+  if(reward.kind==='weapon'){ if(!save.owned.includes(reward.id)) save.owned.push(reward.id); else save.bombs+=500; }
+  else if(reward.kind==='skin'){ if(!save.ownedSkins.includes(reward.id)) save.ownedSkins.push(reward.id); else save.bombs+=400; }
+  else if(reward.kind==='wrap'){ if(!save.ownedWraps.includes(reward.id)) save.ownedWraps.push(reward.id); else save.bombs+=300; }
+  else if(reward.id==='xp-500'){ save.xp=(save.xp||0)+500; save.level=Math.max(1,1+Math.floor(save.xp/250)); }
+  else save.bombs+=Number(reward.id.split('-')[1]||0);
+  persist(); refreshLobbyFromSave(); renderEvent(); sfx('buy');
+  feed(`🌟 Golden case opened: <b>${esc(reward.name)}</b>`);
+}
+function renderEvent(){
+  const el=$('event-panel'); if(!el) return; ensureEventState(); const info=eventInfo();
+  const completed=save.eventTasks.filter(Boolean).length, available=Math.max(0,save.eventCasesEarned-save.eventCasesOpened);
+  let status=info.active?'ACTIVE TODAY — complete hard tasks and open your cases':info.warning?'WARNING — Golden Case Day starts tomorrow':`Next Golden Case Day: ${info.key}-${String(info.day).padStart(2,'0')}`;
+  const tasks=EVENT_TASKS.map((t,i)=>`<div class="event-task ${save.eventTasks[i]?'done':''}">${save.eventTasks[i]?'✓':'○'} ${esc(t.label)}</div>`).join('');
+  el.innerHTML=`<div class="event-head"><div><div class="event-title">🌟 GOLDEN CASE DAY · ${esc(status)}</div><div class="event-copy">Once per month for one full local-calendar day. Five hard tasks earn one case each, maximum 5 cases per account. Cases reveal their exact weighted odds below.</div></div><button class="abtn" id="open-case" ${available&&info.active?'':'disabled'}>OPEN CASE (${available})</button></div><div class="event-grid"><div class="event-box"><h3>Hard tasks · ${completed}/${EVENT_TASKS.length}</h3>${tasks}</div><div class="event-box"><h3>Case contents & hit rates</h3>${eventLootText()}</div></div>`;
+  const b=$('open-case'); if(b) b.onclick=openGoldenCase;
+}
+ensureEventState();
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function cssHex(n){ return '#'+n.toString(16).padStart(6,'0'); }
 
 /* ================= CLOUD ACCOUNTS ================= */
 let db=null, acctCode=null, acctState='checking', acctLinkMsg='Enter your account code:',
     syncTimer=null, syncBusy=false, syncPending=false;
+let localUser=null;
+const LOCAL_ACCOUNTS_KEY='blastrivals-local-accounts';
+function localAccounts(){ try{ const d=JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY)||'{}'); return d&&typeof d==='object'?d:{}; }catch(e){ return {}; } }
+function storeLocalAccounts(d){ try{ localStorage.setItem(LOCAL_ACCOUNTS_KEY,JSON.stringify(d)); }catch(e){} }
+async function passwordHash(value){
+  const bytes=new TextEncoder().encode(value);
+  if(window.crypto && crypto.subtle){ const digest=await crypto.subtle.digest('SHA-256',bytes); return [...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  let h=2166136261; for(const b of bytes) h=Math.imul(h^b,16777619); return (h>>>0).toString(16);
+}
+function profileSummary(){
+  const level=Math.max(1,Math.floor(save.level||1)), xp=Math.floor(save.xp||0);
+  return `<div class="progress-card"><div class="progress-stat"><b>${fmt(level)}</b><small>level</small></div><div class="progress-stat"><b>${fmt(xp)}</b><small>xp</small></div><div class="progress-stat"><b>${fmt(save.roundsWon||0)}</b><small>round wins</small></div><div class="progress-stat"><b>${fmt(save.totalKills||0)}</b><small>kills</small></div></div>`;
+}
+function localProfile(){ return { ...profileBody(), username:localUser }; }
+function saveLocalAccount(){ if(!localUser) return; const all=localAccounts(); all[localUser]=Object.assign(all[localUser]||{}, {passwordHash:all[localUser]?.passwordHash, profile:localProfile()}); storeLocalAccounts(all); }
+function loadLocalProfile(username){ const p=localAccounts()[username]?.profile; if(!p) return false; mergeProfile(p); Object.assign(save,{name:p.name||save.name, bombs:Math.max(0,Math.floor(p.bombs||0)), map:p.map||save.map, mode:p.mode||'solo', updatedAt:p.updatedAt||Date.now()}); return true; }
+function exportProgress(){
+  const blob=new Blob([JSON.stringify({app:'Blast Rivals',version:1,exportedAt:new Date().toISOString(),username:localUser,profile:profileBody()},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`blast-rivals-${(localUser||save.name).replace(/[^a-z0-9_-]/gi,'_')}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+function importProgress(file){
+  if(!file) return; const reader=new FileReader(); reader.onload=()=>{ try{ const raw=JSON.parse(reader.result); const p=raw.profile||raw; mergeProfile(p); persist(); refreshLobbyFromSave(); renderAcct(); }catch(e){ acctLinkMsg='That JSON file could not be read.'; renderAcct(); } }; reader.readAsText(file);
+}
 function loadAcctCode(){ try{ return localStorage.getItem('blastrivals-account'); }catch(e){ return null; } }
 function storeAcctCode(c){ try{ c?localStorage.setItem('blastrivals-account',c):localStorage.removeItem('blastrivals-account'); }catch(e){} }
 function genCode(){
@@ -344,7 +513,8 @@ function genCode(){
 function profileBody(){
   return {bombs:save.bombs, owned:save.owned, equipped:save.equipped, ownedSkins:save.ownedSkins,
     skins:save.skins, ownedWraps:save.ownedWraps, wrap:save.wrap, name:save.name,
-    roundsWon:save.roundsWon||0, updatedAt:Date.now()};
+    roundsWon:save.roundsWon||0, level:save.level||1, xp:save.xp||0, totalKills:save.totalKills||0, headshots:save.headshots||0,
+    eventKey:save.eventKey, eventCasesEarned:save.eventCasesEarned||0, eventCasesOpened:save.eventCasesOpened||0, eventTasks:save.eventTasks||[], eventStats:save.eventStats||{}, map:save.map, mode:save.mode, updatedAt:Date.now()};
 }
 function mergeProfile(d){
   if(!d || typeof d!=='object') return;
@@ -353,6 +523,16 @@ function mergeProfile(d){
   if(Array.isArray(d.ownedSkins)) save.ownedSkins=[...new Set([...save.ownedSkins,...d.ownedSkins.filter(x=>SKINS.some(s=>s.id===x))])];
   if(Array.isArray(d.ownedWraps)) save.ownedWraps=[...new Set([...save.ownedWraps,...d.ownedWraps.filter(x=>WRAPS.some(w=>w.id===x))])];
   if(typeof d.roundsWon==='number') save.roundsWon=Math.max(save.roundsWon||0, Math.floor(d.roundsWon));
+  if(typeof d.level==='number') save.level=Math.max(save.level||1, Math.floor(d.level));
+  if(typeof d.xp==='number') save.xp=Math.max(save.xp||0, Math.floor(d.xp));
+  if(typeof d.totalKills==='number') save.totalKills=Math.max(save.totalKills||0, Math.floor(d.totalKills));
+  if(typeof d.headshots==='number') save.headshots=Math.max(save.headshots||0, Math.floor(d.headshots));
+  if(d.eventKey===save.eventKey){
+    if(Array.isArray(d.eventTasks)) d.eventTasks.forEach((v,i)=>{ if(v) save.eventTasks[i]=true; });
+    if(typeof d.eventCasesEarned==='number') save.eventCasesEarned=Math.max(save.eventCasesEarned||0,Math.min(5,Math.floor(d.eventCasesEarned)));
+    if(typeof d.eventCasesOpened==='number') save.eventCasesOpened=Math.max(save.eventCasesOpened||0,Math.min(5,Math.floor(d.eventCasesOpened)));
+    if(d.eventStats) for(const k of Object.keys(save.eventStats)) save.eventStats[k]=Math.max(save.eventStats[k]||0,Math.floor(d.eventStats[k]||0));
+  }
   if(cloudNewer){
     if(typeof d.bombs==='number' && isFinite(d.bombs)) save.bombs=Math.max(0,Math.floor(d.bombs));
     if(typeof d.equipped==='string' && save.owned.includes(d.equipped)) save.equipped=d.equipped;
@@ -376,7 +556,7 @@ async function pushProfile(){
   if(syncPending){ syncPending=false; scheduleSync(); }
 }
 function setAcct(state){ acctState=state; renderAcct(); }
-function refreshLobbyFromSave(){ renderWallet(); renderShop(); renderMaps(); renderModes(); $('callsign').value=save.name; }
+function refreshLobbyFromSave(){ renderWallet(); renderShop(); renderMaps(); renderModes(); renderEvent(); $('callsign').value=save.name; }
 function saveLocal(){ try{ localStorage.setItem('blastrivals-save', JSON.stringify(save)); }catch(e){} }
 let profileUnsub=null;
 function subscribeProfile(){
@@ -397,7 +577,10 @@ function renderAcct(){
   const S=t=>{ const s=document.createElement('span'); s.innerHTML=t; el.appendChild(s); return s; };
   const B=(label,fn)=>{ const b=document.createElement('button'); b.className='abtn'; b.textContent=label; b.onclick=fn; el.appendChild(b); return b; };
   if(acctState==='checking'){ S('Checking cloud saves…'); }
-  else if(acctState==='nodb'){ S('Progress is saved on this device. Cloud accounts work on the published game page.'); }
+  else if(acctState==='nodb'){
+    if(localUser){ S(`Local account <b>${esc(localUser)}</b> — saved on this device.`); B('Log out',()=>{ localUser=null; setAcct('nodb'); }); B('Download JSON',exportProgress); const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.className='file-input'; inp.onchange=()=>importProgress(inp.files[0]); el.appendChild(inp); B('Load JSON',()=>inp.click()); }
+    else { S('Local account — set a username and password to save progress on this device:'); const u=document.createElement('input'); u.id='local-user'; u.placeholder='username'; u.maxLength=20; const p=document.createElement('input'); p.id='local-pass'; p.type='password'; p.placeholder='password'; p.maxLength=80; el.append(u,p); B('Create / sign in',localLogin); B('Download JSON',exportProgress); }
+  }
   else if(acctState==='nocode'){
     S('Cloud account — keep your bombs, guns &amp; skins on any device:');
     B('Create account',createAccount);
@@ -419,6 +602,18 @@ function renderAcct(){
     B('Copy code',async ev=>{ try{ await navigator.clipboard.writeText(acctCode); ev.target.textContent='Copied!'; setTimeout(()=>{ev.target.textContent='Copy code';},1200); }catch(e){} });
     B('Use another code',()=>{ acctLinkMsg='Enter the account code to switch to:'; setAcct('link'); });
   }
+  const note=document.createElement('div'); note.className='account-note'; note.innerHTML=profileSummary(); el.appendChild(note);
+}
+async function localLogin(){
+  const username=($('local-user')?.value||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,20);
+  const password=$('local-pass')?.value||'';
+  if(username.length<3 || password.length<4){ acctLinkMsg='Use at least 3 username characters and 4 password characters.'; renderAcct(); return; }
+  const all=localAccounts(), hash=await passwordHash(password), existing=all[username];
+  if(existing && existing.passwordHash!==hash){ acctLinkMsg='That username already exists, but the password did not match.'; renderAcct(); return; }
+  if(!existing){ all[username]={passwordHash:hash,profile:profileBody()}; storeLocalAccounts(all); }
+  localUser=username; try{ localStorage.setItem('blastrivals-local-user',username); }catch(e){}
+  if(existing) loadLocalProfile(username); else persist();
+  refreshLobbyFromSave(); renderAcct(); sfx('buy');
 }
 async function createAccount(){
   if(!db) return;
@@ -443,7 +638,7 @@ async function linkAccount(code){
 (async()=>{
   await new Promise(r=>setTimeout(r,0));   // let the rest of the script finish loading first
   try{ if(window.claude && typeof window.claude.use==='function') db=await window.claude.use('db'); }catch(e){ db=null; }
-  if(!db){ setAcct('nodb'); return; }
+  if(!db){ try{ localUser=localStorage.getItem('blastrivals-local-user')||null; if(localUser && !loadLocalProfile(localUser)) localUser=null; }catch(e){} setAcct('nodb'); refreshLobbyFromSave(); return; }
   acctCode=loadAcctCode();
   if(!acctCode){ await createAccount(); return; }   // zero-friction: every player gets an account
   try{
@@ -455,6 +650,7 @@ async function linkAccount(code){
 function persist(){
   save.updatedAt=Date.now();
   try{ localStorage.setItem('blastrivals-save', JSON.stringify(save)); }catch(e){}
+  saveLocalAccount();
   scheduleSync();
 }
 const $=id=>document.getElementById(id);
@@ -499,7 +695,9 @@ function renderShop(){
       btn.onclick=()=>{ if(save.bombs<w.price)return;
         save.bombs-=w.price; save.owned.push(w.id); save.equipped=w.id; persist(); renderWallet(); renderShop(); };
     }
-    card.appendChild(btn); $('shop').appendChild(card);
+    card.appendChild(btn);
+    const test=document.createElement('button'); test.className='wbtn test'; test.textContent='TEST FIRE — NO PURCHASE'; test.onclick=()=>startGame(w.id,true); card.appendChild(test);
+    $('shop').appendChild(card);
   });
   renderSkins(); renderWraps();
 }
@@ -555,7 +753,7 @@ $('callsign').addEventListener('input',e=>{
   save.name=e.target.value.toUpperCase().replace(/[^A-Z0-9 _-]/g,'').slice(0,14)||'RIVAL';
   persist();
 });
-renderWallet(); renderMaps(); renderShop(); renderModes();
+renderWallet(); renderMaps(); renderShop(); renderModes(); renderEvent();
 
 /* ================= THREE SETUP ================= */
 const canvas=$('c');
@@ -1174,15 +1372,31 @@ function switchWeapon(id){
 function fullAmmo(){ G.ammoBy={}; save.owned.forEach(id=>{ G.ammoBy[id]=currentWeaponIdMag(id); }); G.ammo=currentWeapon().mag; G.reloading=0; $('reload-note').textContent=''; }
 /* random spawn point clear of obstacles and away from `avoid` positions */
 function freeSpot(avoid,minDist){
-  for(let i=0;i<40;i++){
+  // Random sampling is fast, but a busy map can exhaust a short sample and
+  // accidentally force callers back to their original spawn. Use a generous
+  // sample followed by a deterministic grid so valid spawns stay varied.
+  for(let i=0;i<240;i++){
     const x=(Math.random()*2-1)*38, z=(Math.random()*2-1)*38;
-    let ok=true;
-    for(const c of colliders){ if(c.minY<2 && x>c.minX-1.2 && x<c.maxX+1.2 && z>c.minZ-1.2 && z<c.maxZ+1.2){ ok=false; break; } }
-    if(!ok) continue;
-    for(const a of avoid){ const dx=a.x-x, dz=a.z-z; if(dx*dx+dz*dz<minDist*minDist){ ok=false; break; } }
-    if(ok) return [x,0,z];
+    if(isValidSpawn(x,z,avoid,minDist)) return [x,0,z];
+  }
+  for(let gx=-36;gx<=36;gx+=6) for(let gz=-36;gz<=36;gz+=6){
+    if(isValidSpawn(gx,gz,avoid,minDist)) return [gx,0,gz];
   }
   return null;
+}
+function isValidSpawn(x,z,avoid,minDist){
+  for(const c of colliders){ if(c.minY<2 && x>c.minX-1.2 && x<c.maxX+1.2 && z>c.minZ-1.2 && z<c.maxZ+1.2) return false; }
+  for(const a of avoid){ const dx=a.x-x, dz=a.z-z; if(dx*dx+dz*dz<minDist*minDist) return false; }
+  return true;
+}
+function botSpawn(bot){
+  const avoid=[G.pos,...livingFoes(),bot.mesh.position];
+  let sp=freeSpot(avoid,16);
+  if(!sp) sp=freeSpot([G.pos,bot.mesh.position],8);
+  if(!sp) sp=bot.spawnAt.slice(); // only possible when the map is genuinely full
+  bot.spawnAt=sp.slice();
+  bot.lastSpawn=sp.slice();
+  return sp;
 }
 function livingFoes(){
   const arr=[];
@@ -1197,7 +1411,7 @@ function startReload(){
 }
 
 /* view model (first-person gun) */
-let vm=null;
+let vm=null, practiceWeapon=null;
 function skinFor(wid){ return SKINS.find(s=>s.id===save.skins[wid]); }
 function activeWrap(){ return WRAPS.find(x=>x.id===save.wrap); }
 function buildViewModel(){
@@ -1219,30 +1433,33 @@ function buildViewModel(){
   camera.add(vm);
 }
 
-function startGame(){
+function startGame(testId=null,practice=false){
   // teardown
   remotes.forEach(r=>{ if(scene) scene.remove(r.mesh); }); remotes.clear();
   scene=new THREE.Scene(); colliders=[]; solidMeshes=[]; tracers.length=0; particles.length=0;
   scene.add(camera);
-  const mode=(save.mode==='mp' && room)?'mp':'solo';
+  const mode=(save.mode==='mp' && room && !practice)?'mp':'solo';
   mapAnims.length=0; mapPads.length=0; mapSlides.length=0; iceZones.length=0;
   const def=BUILDERS[save.map]();
   const mapName=MAP_LIST.find(m=>m.id===save.map).name;
-  const roundsWon=save.roundsWon||0;
-  G={ over:false, mode, wep:save.equipped, ammo:currentWeaponIdMag(save.equipped), ammoBy:{}, reserve:Infinity,
+  const roundsWon=save.roundsWon||0, level=Math.max(1,save.level||1);
+  practiceWeapon=practice?testId:null;
+  const startingWeapon=practice?testId:save.equipped;
+  G={ over:false, mode, practice, wep:startingWeapon, ammo:currentWeaponIdMag(startingWeapon), ammoBy:{}, reserve:Infinity,
       cd:0, reloading:0, hp:100, lastHurt:-99, kills:0, deaths:0, dead:false, deadT:0,
       pos:new THREE.Vector3(def.spawn[0],0,def.spawn[2]), vy:0, onGround:true, mvel:new THREE.Vector3(), slide:null,
       bots:[], mapName, def, shake:0, rockets:[], t:0, diff:0, diffTier:0,
-      baseDiff:Math.min(0.5, roundsWon*0.08) };
+      baseDiff:Math.min(0.82, 0.18+(level-1)*0.012) };
   lastAttacker=null;
   fullAmmo();
   // randomized player spawn every round
   const ps=freeSpot([], 0); if(ps) G.pos.set(ps[0],0,ps[2]);
   if(mode==='solo'){
-    const nBots=4+Math.min(2, Math.floor(roundsWon/2));   // more rivals as you rack up wins
+    const nBots=4+Math.min(4, Math.floor((level-1)/3));   // level progression is unlimited; population stays performant
     for(let i=0;i<nBots;i++){
       const sp=freeSpot([G.pos,...G.bots.map(b=>b.mesh.position)], 16) || def.bots[i%def.bots.length];
-      G.bots.push(makeBot(BOT_NAMES[i%BOT_NAMES.length], sp));
+      const bot=makeBot(BOT_NAMES[i%BOT_NAMES.length], sp); bot.lastSpawn=sp.slice();
+      G.bots.push(bot);
     }
   }
   faceCenter();
@@ -1254,8 +1471,9 @@ function startGame(){
   $('end').style.display='none'; $('death').style.display='none'; $('pause').style.display='none';
   $('feed').innerHTML=''; $('s-you').textContent='0'; $('s-foe').textContent='0';
   document.querySelector('#score-box .goal').textContent = mode==='mp' ? 'FIRST TO 10 · LIVE' : 'FIRST TO 10';
-  if(mode==='mp') feed(`Playing as <b>${esc(save.name)}</b> — rivals on ${mapName} can see you`);
-  else feed(roundsWon>0 ? `Rounds won: <b>${roundsWon}</b> — ${G.bots.length} rivals, sharper than last time` : `${G.bots.length} rivals on ${mapName}. They get sharper the longer you survive.`);
+  if(practice) feed(`Practice range: <b>${esc(currentWeapon().name)}</b> — no rewards or purchases required`);
+  else if(mode==='mp') feed(`Playing as <b>${esc(save.name)}</b> — rivals on ${mapName} can see you`);
+  else feed(`Level <b>${level}</b> · ${G.bots.length} rivals on ${mapName}. They get sharper the longer you survive.`);
   renderWallet(); renderSlots(); updateHUD();
   lockPointer();
 }
@@ -1432,8 +1650,15 @@ function hurtPlayer(amount,byName,byPeer,head,fromPos){
 }
 function creditKill(victimName,head){
   G.kills++; $('s-you').textContent=G.kills;
+  if(G.practice){ feed(`Practice hit confirmed on <b>${esc(victimName)}</b> — rewards disabled`); return; }
+  ensureEventState(); const einfo=eventInfo();
   const reward=head?HEADSHOT_REWARD:KILL_REWARD;
+  save.totalKills=(save.totalKills||0)+1;
+  save.xp=(save.xp||0)+(head?40:25);
+  save.level=Math.max(1,1+Math.floor((save.xp||0)/250));
+  if(einfo.active){ save.eventStats.kills++; save.eventStats.damage+=head?45:30; if(head){ save.headshots=(save.headshots||0)+1; save.eventStats.headshots++; } }
   save.bombs+=reward; persist(); updateHUD();
+  if(einfo.active){ save.eventStats.bombs+=reward; updateEventProgress(); }
   feed(`You eliminated <b>${esc(victimName)}</b> ${head?'🎯 HEADSHOT':''} &nbsp;+💣${reward}`);
   if(G.kills>=ROUND_GOAL){
     if(inMp()) room.emit('win',{score:G.kills}).catch(()=>{});
@@ -1443,15 +1668,17 @@ function creditKill(victimName,head){
 function endRound(won,winnerName){
   G.over=true; document.exitPointerLock && document.exitPointerLock();
   $('death').style.display='none';
-  if(won){ save.bombs+=WIN_BONUS; if(!inMp()) save.roundsWon=(save.roundsWon||0)+1; persist(); }
+  if(won && !G.practice){ ensureEventState(); const einfo=eventInfo(); save.bombs+=WIN_BONUS; save.roundsWon=(save.roundsWon||0)+1; save.xp=(save.xp||0)+100; save.level=Math.max(1,1+Math.floor((save.xp||0)/250)); if(einfo.active){ save.eventStats.wins++; save.eventStats.bombs+=WIN_BONUS; } persist(); if(einfo.active) updateEventProgress(); }
   if(inMp()) room.presence({playing:false}).catch(()=>{});
   $('end-title').textContent=won?'Victory':'Defeat';
   $('end-title').className='big '+(won?'win':'lose');
-  $('end-sub').innerHTML=(won
+  $('end-sub').innerHTML=(G.practice
+    ?`Practice session complete. No currency, XP, or inventory changes were made.`
+    :(won
     ?`You hit <b>${ROUND_GOAL}</b> eliminations on ${G.mapName}.<br>Round bonus <b>+💣 ${WIN_BONUS}</b> — wallet now <b>💣 ${fmt(save.bombs)}</b>.`
     :(winnerName
       ?`<b>${esc(winnerName)}</b> reached <b>${ROUND_GOAL}</b> eliminations first on ${G.mapName}.<br>You banked your kill rewards — wallet <b>💣 ${fmt(save.bombs)}</b>.`
-      :`The rivals got <b>${ROUND_GOAL}</b> eliminations first on ${G.mapName}.<br>You still banked your kill rewards — wallet <b>💣 ${fmt(save.bombs)}</b>.`));
+      :`The rivals got <b>${ROUND_GOAL}</b> eliminations first on ${G.mapName}.<br>You still banked your kill rewards — wallet <b>💣 ${fmt(save.bombs)}</b>.`)));
   $('end').style.display='flex';
 }
 function showPause(on){
@@ -1473,7 +1700,7 @@ function stepBot(bot,dt){
   if(!bot.alive){
     bot.respawn-=dt;
     if(bot.respawn<=0){ bot.alive=true; bot.hp=100; bot.mesh.visible=true; bot.windup=0;
-      const sp=freeSpot([G.pos,...livingFoes()], 16) || bot.spawnAt;   // never the same corner twice
+      const sp=botSpawn(bot);   // excludes the bot's previous position and living foes
       bot.mesh.position.set(sp[0],0,sp[2]); bot.target=null; }
     return;
   }
@@ -1641,7 +1868,7 @@ function animate(){
     $('s-foe').textContent=best;
   } else {
     // difficulty ramps with time survived and your kills
-    G.diff=Math.min(1, G.baseDiff + G.t/150 + G.kills*0.05);
+    G.diff=Math.min(0.95, G.baseDiff + G.t/150 + G.kills*0.05);
     const tier=G.diff>=1?3:G.diff>=0.66?2:G.diff>=0.33?1:0;
     if(tier>G.diffTier){
       G.diffTier=tier;
