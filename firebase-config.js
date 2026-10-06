@@ -1,17 +1,11 @@
 // Blast Rivals — Firebase connection (login + progress database).
-//
-// Paste your web app config from the Firebase console here:
-//   Project settings (gear icon) → Your apps → Web app → "SDK setup and configuration" → Config
-// Until this is filled in, the game saves progress on this device only.
-window.BLAST_FIREBASE_CONFIG = null;
-
-/* Example of what the finished file looks like:
+// Firebase project: caroline-s-game. Web API keys are public identifiers by design;
+// access is controlled by the Firestore rules in firestore.rules, not by this key.
 window.BLAST_FIREBASE_CONFIG = {
-  apiKey: "AIzaSy...",
-  authDomain: "blast-rivals-game.firebaseapp.com",
-  projectId: "blast-rivals-game",
-  storageBucket: "blast-rivals-game.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: "AIzaSyCnNHyCC4tC6KZt6dFaJpG7ueaBq7a1Org",
+  authDomain: "caroline-s-game.firebaseapp.com",
+  projectId: "caroline-s-game",
+  storageBucket: "caroline-s-game.firebasestorage.app",
+  messagingSenderId: "113164128567",
+  appId: "1:113164128567:web:b1dfaef4ff0d7fa80a8ab2"
 };
-*/

@@ -1,9 +1,25 @@
 {
   "firestore": {
-    "rules": "firestore.rules"
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "firestore.rules", ".firebaserc", "**/.*", "**/node_modules/**", "README.md"]
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "README.md"
+    ],
+    "site": "caroline-s-game"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true
+    }
   }
 }
