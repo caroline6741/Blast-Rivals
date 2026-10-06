@@ -962,7 +962,7 @@ function glowBox(w,h,d,x,y,z,color){
   m.position.set(x,y,z); scene.add(m); return m;
 }
 /* interactables: jump pads fling you up, slide gates carry you down, ice zones skid */
-const mapPads=[], mapSlides=[], iceZones=[];
+const mapPads=[], mapSlides=[], iceZones=[], ladders=[];
 function jumpPad(x,z,vy,pushTo){
   const ring=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.24,20), new THREE.MeshBasicMaterial({color:0x35d0ba}));
   ring.position.set(x,0.12,z); scene.add(ring);
@@ -971,7 +971,28 @@ function jumpPad(x,z,vy,pushTo){
   mapAnims.push((dt,t)=>{ const s=1+Math.sin(t*4+x*0.7)*0.1; ring.scale.set(s,1,s); });
   mapPads.push({x,z,r:1.8,vy,pushTo,cd:0});
 }
+function ladder(x,z,bottom,top,tx,tz,color){
+  // rails + rungs on the tower face; the climb zone is what actually lifts you
+  const railMat=new THREE.MeshLambertMaterial({color:color||0xf4f8fc});
+  const side=new THREE.Vector3(-(tz-z),0,tx-x).normalize();      // perpendicular to the climb direction
+  for(const k of [-0.45,0.45]){
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.12,top-bottom,0.12), railMat);
+    rail.position.set(x+side.x*k, (top+bottom)/2, z+side.z*k); scene.add(rail);
+  }
+  for(let y=bottom+0.5;y<top;y+=0.8){
+    const rung=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.1,0.14), railMat);
+    rung.position.set(x,y,z); rung.rotation.y=Math.atan2(side.x,side.z); scene.add(rung);
+  }
+  ladders.push({x,z,r:1.35,bottom,top,tx,tz});
+}
 function slideRide(from,mid,to,color){
+  // solid tube: box colliders laid along the ride path so nobody walks through it
+  for(let i=0;i<=6;i++){
+    const a=i/6, ia=1-a;
+    const px=ia*ia*from[0]+2*ia*a*mid[0]+a*a*to[0], py=ia*ia*from[1]+2*ia*a*mid[1]+a*a*to[1], pz=ia*ia*from[2]+2*ia*a*mid[2]+a*a*to[2];
+    if(i===0) continue;                       // the gate itself stays open
+    colliders.push({minX:px-1.2,maxX:px+1.2,minY:py-1.0,maxY:py+0.4,minZ:pz-1.2,maxZ:pz+1.2});
+  }
   const gate=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.15,10,24), new THREE.MeshBasicMaterial({color}));
   gate.position.set(from[0],from[1]+1.1,from[2]);
   gate.lookAt(new THREE.Vector3(mid[0],from[1]+1.1,mid[2]));
@@ -1115,6 +1136,7 @@ const BUILDERS={
       tube.position.set(t[0]*0.62,5.4,t[1]*0.62); tube.rotation.z=Math.sign(t[0])*Math.PI/3.1; tube.rotation.y=Math.atan2(t[1],t[0]); scene.add(tube);
       // ride it: jump pad up to the deck, slide gate whooshes you down the tube
       jumpPad(t[0]-sx*5.5, t[1]-sz*5.5, 23, [t[0],t[1]]);
+      ladder(t[0]-sx*3.75, t[1], 0, 10.6, t[0], t[1], 0xfff3f6);   // climb up the deck's inner face
       slideRide([t[0]-sx*3.2, 10.6, t[1]-sz*3.2], [t[0]*0.62,5.6,t[1]*0.62], [t[0]*0.30,0.6,t[1]*0.30], t[2]);
     });
     // palm trees
@@ -1529,7 +1551,7 @@ function startGame(testId=null,practice=false){
   scene=new THREE.Scene(); colliders=[]; solidMeshes=[]; tracers.length=0; particles.length=0;
   scene.add(camera);
   const mode=(save.mode==='mp' && room && !practice)?'mp':'solo';
-  mapAnims.length=0; mapPads.length=0; mapSlides.length=0; iceZones.length=0;
+  mapAnims.length=0; mapPads.length=0; mapSlides.length=0; iceZones.length=0; ladders.length=0;
   const def=BUILDERS[save.map]();
   const mapName=MAP_LIST.find(m=>m.id===save.map).name;
   const roundsWon=save.roundsWon||0, level=Math.max(1,save.level||1);
@@ -1564,6 +1586,7 @@ function startGame(testId=null,practice=false){
   if(practice) feed(`Practice range: <b>${esc(currentWeapon().name)}</b> — no rewards or purchases required`);
   else if(mode==='mp') feed(`Playing as <b>${esc(save.name)}</b> — rivals on ${mapName} can see you`);
   else feed(`Level <b>${level}</b> · ${G.bots.length} rivals on ${mapName}. They get sharper the longer you survive.`);
+  if(save.map==='splash' && !practice) feed('🏄 Climb a tower ladder (or hit a teal jump pad), then walk into the glowing ring to ride the slide');
   renderWallet(); renderSlots(); updateHUD();
   lockPointer();
 }
@@ -1901,9 +1924,20 @@ function animate(){
           if(p.pushTo) G.mvel.copy(new THREE.Vector3(p.pushTo[0]-p.x,0,p.pushTo[1]-p.z).normalize().multiplyScalar(3.5));
         }
       }
+      // ladders: face the rungs and hold forward (or Space) to climb, back to descend
+      for(const L of ladders){
+        const dx=G.pos.x-L.x, dz=G.pos.z-L.z;
+        if(dx*dx+dz*dz<L.r*L.r && G.pos.y>=L.bottom-0.3 && G.pos.y<L.top+0.3){
+          const up=KEY['KeyW']||KEY['ArrowUp']||KEY['Space'], down=KEY['KeyS']||KEY['ArrowDown'];
+          G.vy=0; G.onGround=true;
+          if(up) G.pos.y+=4.5*dt; else if(down) G.pos.y=Math.max(groundAt(G.pos), G.pos.y-4.5*dt);
+          if(G.pos.y>=L.top){ G.pos.y=L.top+0.1; G.mvel.set(L.tx-G.pos.x,0,L.tz-G.pos.z).normalize().multiplyScalar(4); }
+          break;
+        }
+      }
       // slide gates
       for(const s of mapSlides){
-        if(G.pos.distanceTo(s.from)<1.7){ G.slide={t:0, from:s.from, mid:s.mid, to:s.to}; sfx('buy'); break; }
+        if(G.pos.distanceTo(s.from)<2.1){ G.slide={t:0, from:s.from, mid:s.mid, to:s.to}; sfx('buy'); break; }
       }
     }
     // regen
