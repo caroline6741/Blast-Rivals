@@ -264,6 +264,11 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Firebase (login + database) — used when the game is hosted on its own site; see firebase-config.js -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
 'use strict';
 /* ================= DATA ================= */
@@ -362,15 +367,25 @@ function mergeProfile(d){
     if(typeof d.name==='string' && d.name) save.name=d.name.replace(/[^\w \-]/g,'').slice(0,14)||save.name;
   }
 }
+/* Firebase backend (username + password login, Firestore database) */
+let fbAuth=null, fbDb=null, fbUser=null, fbUsername='', fbMsg='';
+function fbReady(){ return !!(fbAuth && fbDb); }
+function fbEmail(u){ return u+'@players.blastrivals.app'; }   // usernames are stored as synthetic emails
+function fbDocRef(){ return fbDb.collection('players').doc(fbUser.uid); }
+function canSync(){ return (db && acctCode) || (fbReady() && fbUser); }
 function scheduleSync(){
-  if(!db || !acctCode) return;
+  if(!canSync()) return;
   clearTimeout(syncTimer); syncTimer=setTimeout(pushProfile,1200);
 }
 async function pushProfile(){
-  if(!db || !acctCode) return;
+  if(!canSync()) return;
   if(syncBusy){ syncPending=true; return; }
   syncBusy=true;
-  try{ await db.doc('profiles/'+acctCode).set(profileBody()); if(acctState==='error') setAcct('linked'); }
+  try{
+    if(fbReady() && fbUser) await fbDocRef().set({...profileBody(), username:fbUsername}, {merge:true});
+    else await db.doc('profiles/'+acctCode).set(profileBody());
+    if(acctState==='error') setAcct(fbUser?'fb-in':'linked');
+  }
   catch(e){ setAcct('error'); }
   syncBusy=false;
   if(syncPending){ syncPending=false; scheduleSync(); }
@@ -379,25 +394,90 @@ function setAcct(state){ acctState=state; renderAcct(); }
 function refreshLobbyFromSave(){ renderWallet(); renderShop(); renderMaps(); renderModes(); $('callsign').value=save.name; }
 function saveLocal(){ try{ localStorage.setItem('blastrivals-save', JSON.stringify(save)); }catch(e){} }
 let profileUnsub=null;
+function applyRemoteSnapshot(exists,pending,d){
+  if(!exists || pending || !d) return;
+  if((+d.updatedAt||0) <= (save.updatedAt||0)) return;   // nothing newer than us
+  mergeProfile(d);
+  save.updatedAt=+d.updatedAt||Date.now();
+  saveLocal();
+  if(G){ renderWallet(); } else refreshLobbyFromSave();  // live update from your other device
+}
 function subscribeProfile(){
   if(profileUnsub){ profileUnsub(); profileUnsub=null; }
+  if(fbReady() && fbUser){
+    profileUnsub=fbDocRef().onSnapshot(snap=>applyRemoteSnapshot(snap.exists, snap.metadata.hasPendingWrites, snap.data()), ()=>{});
+    return;
+  }
   if(!db || !acctCode) return;
-  profileUnsub=db.doc('profiles/'+acctCode).onSnapshot(snap=>{
-    if(!snap.exists || snap.metadata.hasPendingWrites) return;
-    const d=snap.data();
-    if((+d.updatedAt||0) <= (save.updatedAt||0)) return;   // nothing newer than us
-    mergeProfile(d);
-    save.updatedAt=+d.updatedAt||Date.now();
-    saveLocal();
-    if(G){ renderWallet(); } else refreshLobbyFromSave();  // live update from your other device
-  }, ()=>{ /* subscription died; periodic pushes still work */ });
+  profileUnsub=db.doc('profiles/'+acctCode).onSnapshot(snap=>applyRemoteSnapshot(snap.exists, snap.metadata.hasPendingWrites, snap.data()),
+    ()=>{ /* subscription died; periodic pushes still work */ });
+}
+/* ---- Firebase login flows ---- */
+function fbFriendly(e){
+  const c=(e&&e.code)||'';
+  if(c.includes('email-already-in-use')) return 'That username is taken — try another.';
+  if(c.includes('wrong-password')||c.includes('user-not-found')||c.includes('invalid-credential')||c.includes('invalid-login-credentials')) return 'Wrong username or password.';
+  if(c.includes('weak-password')) return 'Password needs at least 6 characters.';
+  if(c.includes('too-many-requests')) return 'Too many tries — wait a minute and try again.';
+  if(c.includes('network')) return 'No connection — check your internet.';
+  return 'Something went wrong — try again.';
+}
+function readLoginForm(){
+  const u=($('fb-user').value||'').trim().toLowerCase(), p=$('fb-pass').value||'';
+  if(!/^[a-z0-9_]{3,16}$/.test(u)){ fbMsg='Username: 3–16 letters, numbers or _'; setAcct('fb-out'); return null; }
+  if(p.length<6){ fbMsg='Password needs at least 6 characters.'; setAcct('fb-out'); return null; }
+  return {u,p};
+}
+async function fbSignup(){
+  const f=readLoginForm(); if(!f) return;
+  setAcct('fb-busy');
+  try{
+    fbUsername=f.u;
+    const cred=await fbAuth.createUserWithEmailAndPassword(fbEmail(f.u), f.p);
+    if(/^RIVAL-\d{4}$/.test(save.name)) save.name=f.u.toUpperCase().slice(0,14);   // adopt the username as call sign
+    save.updatedAt=Date.now();
+    await fbDb.collection('players').doc(cred.user.uid).set({...profileBody(), username:f.u, createdAt:Date.now()});
+    // onAuthStateChanged finishes the login
+  }catch(e){ fbMsg=fbFriendly(e); setAcct('fb-out'); }
+}
+async function fbLogin(){
+  const f=readLoginForm(); if(!f) return;
+  setAcct('fb-busy');
+  try{ fbUsername=f.u; await fbAuth.signInWithEmailAndPassword(fbEmail(f.u), f.p); }
+  catch(e){ fbMsg=fbFriendly(e); setAcct('fb-out'); }
+}
+async function fbLogout(){
+  try{ await fbAuth.signOut(); }catch(e){}
+}
+async function fbOnUser(user){
+  fbUser=user;
+  if(profileUnsub){ profileUnsub(); profileUnsub=null; }
+  if(!user){ fbMsg=''; setAcct('fb-out'); return; }
+  fbUsername=(user.email||'').split('@')[0]||fbUsername;
+  try{
+    const snap=await fbDocRef().get();
+    if(snap.exists){ mergeProfile(snap.data()); }
+    persist(); refreshLobbyFromSave(); setAcct('fb-in'); subscribeProfile();
+  }catch(e){ setAcct('error'); }
 }
 function renderAcct(){
   const el=$('acct'); el.innerHTML='';
   const S=t=>{ const s=document.createElement('span'); s.innerHTML=t; el.appendChild(s); return s; };
   const B=(label,fn)=>{ const b=document.createElement('button'); b.className='abtn'; b.textContent=label; b.onclick=fn; el.appendChild(b); return b; };
   if(acctState==='checking'){ S('Checking cloud saves…'); }
-  else if(acctState==='nodb'){ S('Progress is saved on this device. Cloud accounts work on the published game page.'); }
+  else if(acctState==='nodb'){ S('Progress is saved on this device only. Add Firebase (see README) to enable login on any computer.'); }
+  else if(acctState==='fb-out'){
+    S(fbMsg ? `<span style="color:var(--bad)">${esc(fbMsg)}</span>` : 'Log in to save your progress and play from any computer:');
+    const u=document.createElement('input'); u.id='fb-user'; u.placeholder='username'; u.maxLength=16; u.autocomplete='username'; u.style.textTransform='none'; el.appendChild(u);
+    const p=document.createElement('input'); p.id='fb-pass'; p.type='password'; p.placeholder='password'; p.maxLength=64; p.autocomplete='current-password'; p.style.textTransform='none'; el.appendChild(p);
+    B('Log in',fbLogin); B('Sign up',fbSignup);
+    p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbLogin(); });
+  }
+  else if(acctState==='fb-busy'){ S('Signing in…'); }
+  else if(acctState==='fb-in'){
+    S(`Logged in as <b>${esc(fbUsername)}</b> — progress saves to the database automatically.`);
+    B('Log out',fbLogout);
+  }
   else if(acctState==='nocode'){
     S('Cloud account — keep your bombs, guns &amp; skins on any device:');
     B('Create account',createAccount);
@@ -443,6 +523,15 @@ async function linkAccount(code){
 (async()=>{
   await new Promise(r=>setTimeout(r,0));   // let the rest of the script finish loading first
   try{ if(window.claude && typeof window.claude.use==='function') db=await window.claude.use('db'); }catch(e){ db=null; }
+  if(!db && window.firebase && window.BLAST_FIREBASE_CONFIG && window.BLAST_FIREBASE_CONFIG.apiKey){
+    // self-hosted build: real login + Firestore database
+    try{
+      firebase.initializeApp(window.BLAST_FIREBASE_CONFIG);
+      fbAuth=firebase.auth(); fbDb=firebase.firestore();
+      fbAuth.onAuthStateChanged(fbOnUser);
+      return;
+    }catch(e){ fbAuth=null; fbDb=null; }
+  }
   if(!db){ setAcct('nodb'); return; }
   acctCode=loadAcctCode();
   if(!acctCode){ await createAccount(); return; }   // zero-friction: every player gets an account
