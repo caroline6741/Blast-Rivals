@@ -133,6 +133,129 @@
   .cos-for{color:var(--dim); font-size:11px; letter-spacing:.5px; text-transform:uppercase;}
   .cos-desc{color:var(--dim); font-size:11.5px; line-height:1.4;}
   .cos .wbtn{padding:8px; font-size:12.5px; margin-top:0;}
+  /* ---------- auth page ---------- */
+  .authpage{z-index:40; justify-content:center; background:radial-gradient(900px 600px at 50% 0%, #1f2a40 0%, #10141c 65%);}
+  .authwrap{width:min(420px,100%); display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .authcard{width:100%; margin-top:22px; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:22px 22px 18px; display:flex; flex-direction:column; gap:12px; box-shadow:0 20px 60px rgba(0,0,0,.45);}
+  .authtabs{display:grid; grid-template-columns:1fr 1fr; background:var(--bg); border-radius:10px; padding:4px; gap:4px;}
+  .atab{border:none; background:transparent; color:var(--dim); font-family:Rubik,sans-serif; font-weight:700; font-size:13.5px;
+    padding:9px; border-radius:7px; cursor:pointer; letter-spacing:.3px;}
+  .atab.sel{background:var(--panel2); color:var(--text);}
+  .field{display:flex; flex-direction:column; gap:5px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--dim);}
+  .field input{background:var(--bg); border:1px solid var(--line); border-radius:9px; color:var(--text); padding:11px 12px;
+    font-family:Rubik,sans-serif; font-size:15px; letter-spacing:0; text-transform:none;}
+  .field input:focus{outline:2px solid var(--accent); border-color:var(--accent);}
+  .autherr{min-height:16px; font-size:12.5px; color:var(--bad);}
+  .primary-btn{font-family:'Russo One',Rubik,sans-serif; letter-spacing:2px; text-transform:uppercase; font-size:15px;
+    background:var(--accent); color:#1a1006; border:none; border-radius:10px; padding:13px; cursor:pointer;}
+  .primary-btn:disabled{opacity:.6; cursor:wait;}
+  .primary-btn:hover:not(:disabled){filter:brightness(1.08);}
+  .authfoot{font-size:12px; color:var(--dim); text-align:center; line-height:1.5;}
+  .ghost{background:none; border:none; color:var(--dim); font-family:Rubik,sans-serif; font-size:12.5px; cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px; padding:4px;}
+  .ghost:hover{color:var(--text);}
+  /* ---------- player bar ---------- */
+  .playerbar{width:min(760px,100%); margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:12px 16px; display:grid; grid-template-columns:auto 1fr auto; gap:14px 18px; align-items:center;}
+  .pb-id{display:flex; align-items:center; gap:10px; min-width:0;}
+  .avatar{width:40px; height:40px; border-radius:12px; display:grid; place-items:center; font-family:'Russo One',Rubik,sans-serif;
+    font-size:18px; color:#1a1006; background:linear-gradient(135deg,var(--accent2),var(--accent)); flex:none;}
+  .pb-name{font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pb-sub{font-size:11.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pb-sub.bad{color:var(--bad);}
+  .pb-level{display:flex; align-items:center; gap:10px; min-width:160px;}
+  .lvl{font-family:'Russo One',Rubik,sans-serif; font-size:12px; letter-spacing:1px; color:#1a1006; background:var(--gold);
+    border-radius:20px; padding:3px 9px; flex:none;}
+  .xpwrap{flex:1; display:flex; flex-direction:column; gap:3px;}
+  .xpbar{height:6px; border-radius:3px; background:var(--bg); overflow:hidden;}
+  .xpbar i{display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--accent2));}
+  .xpwrap small{font-size:10px; color:var(--dim); letter-spacing:.5px; font-variant-numeric:tabular-nums;}
+  .pb-stats{display:flex; gap:14px;}
+  .pb-stats div{text-align:center;}
+  .pb-stats b{display:block; font-family:'Russo One',Rubik,sans-serif; font-size:16px; color:var(--text);}
+  .pb-stats small{font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--dim);}
+  .pb-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; grid-column:1 / -1;}
+  .pb-actions input{background:var(--bg); border:1px solid var(--line); border-radius:7px; color:var(--text); padding:5px 10px;
+    font-size:12px; width:150px; text-transform:uppercase; letter-spacing:1px; font-family:Rubik,sans-serif;}
+  @media (max-width:620px){ .playerbar{grid-template-columns:1fr;} .pb-actions{justify-content:flex-start;} }
+  /* ---------- event card ---------- */
+  .event-card{width:min(760px,100%); margin-top:12px; border-radius:14px; border:1px solid #6b5420;
+    background:linear-gradient(135deg,rgba(255,209,102,.12),rgba(26,33,48,.95) 55%); padding:14px 16px; display:flex; flex-direction:column; gap:12px;}
+  .ev-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .ev-icon{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:26px;
+    background:rgba(255,209,102,.14); border:1px solid rgba(255,209,102,.35); flex:none;}
+  .ev-icon.bounce{animation:bounce 1.6s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)}}
+  @media (prefers-reduced-motion:reduce){ .ev-icon.bounce{animation:none;} }
+  .ev-titlewrap{flex:1; min-width:180px;}
+  .ev-title{font-family:'Russo One',Rubik,sans-serif; color:var(--gold); letter-spacing:1px; font-size:15px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ev-badge{font-family:Rubik,sans-serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; border-radius:20px; padding:2px 9px;
+    background:var(--panel2); color:var(--dim); border:1px solid var(--line);}
+  .ev-badge.today{background:var(--gold); color:#1a1006; border-color:var(--gold);}
+  .ev-badge.soon{background:rgba(255,122,47,.18); color:var(--accent2); border-color:rgba(255,122,47,.4);}
+  .ev-sub{font-size:12px; color:var(--dim); margin-top:3px; line-height:1.45;}
+  .ev-open{font-family:'Russo One',Rubik,sans-serif; letter-spacing:1.5px; font-size:12px; background:var(--gold); color:#1a1006;
+    border:none; border-radius:10px; padding:10px 16px; cursor:pointer;}
+  .ev-open:disabled{background:var(--panel2); color:var(--dim); cursor:not-allowed;}
+  .ev-cases{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .case{width:34px; height:30px; border-radius:8px; display:grid; place-items:center; font-size:17px; background:var(--panel2);
+    border:1px dashed var(--line); opacity:.45;}
+  .case.earned{opacity:1; border:1px solid var(--gold); background:rgba(255,209,102,.16); box-shadow:0 0 10px rgba(255,209,102,.25);}
+  .case.opened{opacity:.7; border-style:solid; background:var(--panel2); box-shadow:none;}
+  .ev-cases small{font-size:11px; color:var(--dim); margin-left:4px;}
+  .ev-bar{display:flex; align-items:center; gap:10px; font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums;}
+  .ev-bar .bar{flex:1; height:8px;}
+  .ev-bar .bar i{background:linear-gradient(90deg,var(--gold),var(--accent2));}
+  .ev-cats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px;}
+  .ev-cat{background:rgba(10,13,19,.45); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:5px;}
+  .ev-cat .t{display:flex; justify-content:space-between; font-size:11.5px; color:var(--text);}
+  .ev-cat .t small{color:var(--dim); font-variant-numeric:tabular-nums;}
+  .ev-cat .bar{height:5px;}
+  .ev-cat.done .bar i{background:var(--own);}
+  .ev-cat .n{font-size:10.5px; color:var(--dim);}
+  .ev-cat.done .n{color:var(--own);}
+  details.ev-more{font-size:12px; color:var(--dim);}
+  details.ev-more summary{cursor:pointer; color:var(--accent2); font-weight:500; list-style:none; display:inline-flex; align-items:center; gap:6px;}
+  details.ev-more summary::-webkit-details-marker{display:none;}
+  details.ev-more summary::before{content:"\25B8"; font-size:10px;}
+  details.ev-more[open] summary::before{content:"\25BE";}
+  .loot{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .pill{font-size:11px; border-radius:20px; padding:3px 10px; border:1px solid; display:inline-flex; gap:6px; align-items:center; font-variant-numeric:tabular-nums;}
+  .pill b{font-weight:500;} .pill em{font-style:normal; opacity:.8;}
+  .pill.legendary{color:var(--gold); border-color:rgba(255,209,102,.5); background:rgba(255,209,102,.1);}
+  .pill.epic{color:#c9a3ff; border-color:rgba(160,110,255,.5); background:rgba(160,110,255,.1);}
+  .pill.rare{color:#8fc5ff; border-color:rgba(79,163,209,.5); background:rgba(79,163,209,.1);}
+  .pill.common{color:var(--dim); border-color:var(--line); background:var(--panel2);}
+  .tasklist{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:3px 14px; margin-top:8px;}
+  .tasklist div{font-size:11.5px; color:var(--dim); padding:2px 0;}
+  .tasklist div.done{color:var(--own); text-decoration:line-through;}
+  /* ---------- armory toolbar ---------- */
+  .armbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:0 12px;}
+  .search input{flex:1; background:none; border:none; color:var(--text); font-family:Rubik,sans-serif; font-size:14px; padding:10px 0; min-width:0;}
+  .search input:focus{outline:none;}
+  .search:focus-within{border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,122,47,.18);}
+  .search .clr{background:none; border:none; color:var(--dim); cursor:pointer; font-size:14px; padding:4px;}
+  .tabs{display:flex; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px; gap:3px; flex-wrap:wrap;}
+  .tab{border:none; background:transparent; color:var(--dim); font-family:Rubik,sans-serif; font-weight:700; font-size:12.5px;
+    padding:7px 12px; border-radius:7px; cursor:pointer;}
+  .tab.sel{background:var(--accent); color:#1a1006;}
+  .tab:hover:not(.sel){color:var(--text);}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+  .chip{border:1px solid var(--line); background:var(--panel); color:var(--dim); border-radius:20px; padding:5px 12px;
+    font-family:Rubik,sans-serif; font-size:12px; cursor:pointer;}
+  .chip.sel{border-color:var(--own); color:var(--own); background:rgba(53,208,186,.1);}
+  .armhead{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:16px 0 10px;
+    font-family:'Russo One',Rubik,sans-serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text);}
+  .armhead .count{color:var(--dim); font-family:Rubik,sans-serif; font-weight:400; letter-spacing:0; text-transform:none; font-size:12px;}
+  .armhead label{font-family:Rubik,sans-serif; font-size:12px; letter-spacing:0; text-transform:none; color:var(--dim); display:flex; gap:6px; align-items:center;}
+  .armhead select{background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:7px; padding:4px 8px;
+    font-family:Rubik,sans-serif; font-size:12px;}
+  .empty{color:var(--dim); font-size:13px; padding:28px; text-align:center; border:1px dashed var(--line); border-radius:12px;}
+  .wep-tag{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); background:var(--panel2);
+    border-radius:20px; padding:2px 8px; margin-left:6px; font-family:Rubik,sans-serif; font-weight:400; vertical-align:middle;}
   /* ---------- HUD ---------- */
   #hud{position:fixed; inset:0; pointer-events:none; z-index:10; display:none; font-variant-numeric:tabular-nums;}
   #xhair{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:22px; height:22px;}
@@ -197,12 +320,28 @@
 <canvas id="c"></canvas>
 
 <!-- ============ LOBBY ============ -->
+<div class="overlay authpage" id="authpage" style="display:none">
+  <div class="authwrap">
+    <h1 class="logo">Blast <em>Rivals</em></h1>
+    <div class="tag">Sign in to keep your bombs, guns and skins wherever you play</div>
+    <div class="authcard">
+      <div class="authtabs"><button class="atab sel" id="tab-login" type="button">Log in</button><button class="atab" id="tab-signup" type="button">Sign up</button></div>
+      <label class="field">Username<input id="auth-user" maxlength="16" autocomplete="username" spellcheck="false" placeholder="e.g. blastqueen"></label>
+      <label class="field">Password<input id="auth-pass" type="password" maxlength="64" autocomplete="current-password" placeholder="at least 6 characters"></label>
+      <div class="autherr" id="auth-err"></div>
+      <button class="primary-btn" id="auth-go" type="button">Log in</button>
+      <div class="authfoot" id="auth-note"></div>
+      <button class="ghost" id="auth-guest" type="button">Continue as guest — progress stays on this device</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="lobby">
   <h1 class="logo">Blast <em>Rivals</em></h1>
   <div class="tag">Deathmatch shooter &middot; first to 10 eliminations wins the round</div>
   <div class="wallet">💣 <span id="wallet-n">0</span> <small>bombs</small></div>
-  <div class="acct" id="acct"><span>Checking cloud saves…</span></div>
-  <div class="event-panel" id="event-panel"></div>
+  <div class="playerbar" id="acct"><div class="pb-id"><span class="avatar">?</span><div><div class="pb-name">Loading…</div><div class="pb-sub">Checking your account</div></div></div></div>
+  <div class="event-card" id="event-panel"></div>
 
   <div class="section">
     <h2><span>01</span> Game mode</h2>
@@ -226,19 +365,24 @@
     <div class="maps" id="maps"></div>
   </div>
 
-  <div class="section">
+  <div class="section" id="armory">
     <h2><span>03</span> Armory — pay in bombs</h2>
+    <div class="armbar">
+      <div class="search"><span aria-hidden="true">🔍</span><input id="shop-q" placeholder="Search guns, skins and wraps…" autocomplete="off"><button class="clr" id="shop-clr" title="Clear search" hidden>✕</button></div>
+      <div class="tabs" id="shop-view">
+        <button class="tab sel" data-view="all">All</button><button class="tab" data-view="weapons">Weapons</button>
+        <button class="tab" data-view="skins">Skins</button><button class="tab" data-view="wraps">Wraps</button><button class="tab" data-view="owned">My gear</button>
+      </div>
+    </div>
+    <div class="chips" id="shop-cats"></div>
+    <div class="armhead" id="shop-head-w"><span>Weapons <span class="count" id="shop-count-w"></span></span>
+      <label>Sort <select id="shop-sort"><option value="price">Price: low → high</option><option value="price-desc">Price: high → low</option><option value="dmg">Damage</option><option value="dps">DPS</option><option value="name">Name</option></select></label></div>
     <div class="shop" id="shop"></div>
-  </div>
-
-  <div class="section">
-    <h2><span>04</span> Gun skins</h2>
+    <div class="armhead" id="shop-head-s"><span>Gun skins <span class="count" id="shop-count-s"></span></span></div>
     <div class="cosgrid" id="skinshop"></div>
-  </div>
-
-  <div class="section">
-    <h2><span>05</span> Wraps — one finish, every gun</h2>
+    <div class="armhead" id="shop-head-r"><span>Wraps — one finish, every gun <span class="count" id="shop-count-r"></span></span></div>
     <div class="cosgrid" id="wrapshop"></div>
+    <div class="empty" id="shop-empty" hidden></div>
   </div>
 
   <button class="playbtn" id="play">Deploy</button>
@@ -294,6 +438,7 @@
 <script src="firebase-config.js"></script>
 <script>
 'use strict';
+const $=id=>document.getElementById(id);
 /* ================= DATA ================= */
 const WEAPONS = [
   {id:'blaster', name:'Blaster',    price:0,    dmg:12, cd:0.14, auto:true,  mag:15, reload:1.2, pellets:1, spread:0.012, desc:'Standard-issue sidearm. Reliable in all scenarios.', color:0x9aa7bd},
@@ -324,6 +469,13 @@ const WEAPONS = [
   {id:'atlas',name:'Atlas',price:2200,dmg:38,cd:0.34,auto:true,mag:18,reload:2.0,pellets:1,spread:0.014,desc:'Heavy all-purpose rifle with dependable control.',color:0x9cae8a},
   {id:'prism',name:'Prism',price:2000,dmg:31,cd:0.18,auto:true,mag:25,reload:1.7,pellets:1,spread:0.018,desc:'Refraction rounds balance speed and power.',color:0xff7ef2},
 ];
+const WEAPON_CAT={blaster:'Sidearm',judge:'Sidearm',monarch:'Sidearm', hornet:'SMG',needle:'SMG',sawblade:'SMG',echo:'SMG',thorn:'SMG',
+  warhawk:'Rifle',cinder:'Rifle',silencer:'Rifle',comet:'Rifle',atlas:'Rifle', boomstick:'Shotgun',scatter:'Shotgun',trident:'Shotgun',
+  longshot:'Sniper',frostbite:'Sniper',abyss:'Sniper', meganuke:'Heavy',vortex:'Heavy',quake:'Heavy',flaregun:'Heavy',
+  railgun:'Energy',pulse:'Energy',sunflare:'Energy',prism:'Energy'};
+const WEAPON_CATS=['Sidearm','SMG','Rifle','Shotgun','Sniper','Heavy','Energy'];
+function wcat(id){ return WEAPON_CAT[id]||'Rifle'; }
+const shopUI={q:'', view:'all', cat:'all', sort:'price'};
 const MAP_LIST = [
   {id:'arena',        name:'Arena',        desc:'Golden-hour colosseum. Torch-lit columns, banners and a tiered core.'},
   {id:'docks',        name:'Docks',        desc:'Moonlit harbor. Rolling water, lamp-lit piers and container lanes.'},
@@ -471,12 +623,34 @@ function openGoldenCase(){
   persist(); refreshLobbyFromSave(); renderEvent(); sfx('buy');
   feed(`🌟 Golden case opened: <b>${esc(reward.name)}</b>`);
 }
+const EVENT_METRICS={kills:{icon:'💥',label:'Eliminations'},headshots:{icon:'🎯',label:'Headshots'},wins:{icon:'🏆',label:'Round wins'},bombs:{icon:'💣',label:'Bombs earned'},damage:{icon:'⚔️',label:'Damage dealt'}};
+function rarity(ch){ return ch<1?'legendary':ch<5?'epic':ch<15?'rare':'common'; }
 function renderEvent(){
   const el=$('event-panel'); if(!el) return; ensureEventState(); const info=eventInfo();
   const completed=save.eventTasks.filter(Boolean).length, available=Math.max(0,save.eventCasesEarned-save.eventCasesOpened);
-  let status=info.active?'ACTIVE TODAY — complete hard tasks and open your cases':info.warning?'WARNING — Golden Case Day starts tomorrow':`Next Golden Case Day: ${info.key}-${String(info.day).padStart(2,'0')}`;
-  const tasks=EVENT_TASKS.map((t,i)=>`<div class="event-task ${save.eventTasks[i]?'done':''}">${save.eventTasks[i]?'✓':'○'} ${esc(t.label)}</div>`).join('');
-  el.innerHTML=`<div class="event-head"><div><div class="event-title">🌟 GOLDEN CASE DAY · ${esc(status)}</div><div class="event-copy">Once per month for one full local-calendar day. Five hard tasks earn one case each, maximum 5 cases per account. Cases reveal their exact weighted odds below.</div></div><button class="abtn" id="open-case" ${available&&info.active?'':'disabled'}>OPEN CASE (${available})</button></div><div class="event-grid"><div class="event-box"><h3>Hard tasks · ${completed}/${EVENT_TASKS.length}</h3>${tasks}</div><div class="event-box"><h3>Case contents & hit rates</h3>${eventLootText()}</div></div>`;
+  const when=info.active?'Today!':info.warning?'Tomorrow':info.daysUntil>0?`in ${info.daysUntil} day${info.daysUntil>1?'s':''}`:'next month';
+  const badge=info.active?'today':info.warning?'soon':'';
+  const sub=info.active?"It's on! Finish tasks today — every 5 earns a Golden Case, up to 5 cases."
+           :info.warning?'Starts tomorrow. Rest up — the tasks are tough and only count on the day.'
+           :`One day a month, 25 hard tasks, up to 5 Golden Cases. Next one: ${info.key}-${String(info.day).padStart(2,'0')}.`;
+  const cases=[0,1,2,3,4].map(i=>`<span class="case ${i<save.eventCasesOpened?'opened':i<save.eventCasesEarned?'earned':''}" title="${i<save.eventCasesOpened?'Opened':i<save.eventCasesEarned?'Ready to open':'Locked'}">${i<save.eventCasesOpened?'📭':'🎁'}</span>`).join('');
+  const cats=Object.keys(EVENT_METRICS).map(m=>{
+    const tasks=EVENT_TASKS.map((t,i)=>({...t,i})).filter(t=>t.metric===m);
+    const done=tasks.filter(t=>save.eventTasks[t.i]).length, next=tasks.find(t=>!save.eventTasks[t.i]);
+    const have=+save.eventStats[m]||0, pct=next?Math.min(100,Math.round(have/next.target*100)):100;
+    return `<div class="ev-cat ${done===tasks.length?'done':''}"><div class="t"><span>${EVENT_METRICS[m].icon} ${EVENT_METRICS[m].label}</span><small>${done}/${tasks.length}</small></div>
+      <div class="bar"><i style="width:${pct}%"></i></div><div class="n">${next?`${fmt(have)} / ${fmt(next.target)}`:'All done ✓'}</div></div>`;
+  }).join('');
+  const loot=EVENT_LOOT.map(x=>`<span class="pill ${rarity(x.chance)}"><b>${esc(x.name)}</b><em>${x.chance}%</em></span>`).join('');
+  const tasks=EVENT_TASKS.map((t,i)=>`<div class="${save.eventTasks[i]?'done':''}">${save.eventTasks[i]?'✓':'○'} ${esc(t.label)}</div>`).join('');
+  el.innerHTML=`<div class="ev-head"><div class="ev-icon ${info.active?'bounce':''}">🎁</div>
+      <div class="ev-titlewrap"><div class="ev-title">Golden Case Day <span class="ev-badge ${badge}">${when}</span></div><div class="ev-sub">${sub}</div></div>
+      <button class="ev-open" id="open-case" ${available&&info.active?'':'disabled'}>${available?`Open case (${available})`:info.active?'No case yet':'Locked until event day'}</button></div>
+    <div class="ev-cases">${cases}<small>${save.eventCasesOpened} opened · ${Math.max(0,save.eventCasesEarned-save.eventCasesOpened)} ready · ${5-save.eventCasesEarned} to earn</small></div>
+    <div class="ev-bar"><span>${completed}/${EVENT_TASKS.length} tasks</span><div class="bar"><i style="width:${Math.round(completed/EVENT_TASKS.length*100)}%"></i></div><span>${Math.floor(completed/5)} of 5 cases earned</span></div>
+    <div class="ev-cats">${cats}</div>
+    <details class="ev-more"><summary>What's inside a Golden Case (exact odds)</summary><div class="loot">${loot}</div></details>
+    <details class="ev-more"><summary>All 25 tasks</summary><div class="tasklist">${tasks}</div></details>`;
   const b=$('open-case'); if(b) b.onclick=openGoldenCase;
 }
 ensureEventState();
@@ -604,7 +778,7 @@ function fbFriendly(e){
   return 'Something went wrong — try again.';
 }
 function readLoginForm(){
-  const u=($('fb-user').value||'').trim().toLowerCase(), p=$('fb-pass').value||'';
+  const {u,p}=authForm();
   if(!/^[a-z0-9_]{3,16}$/.test(u)){ fbMsg='Username: 3–16 letters, numbers or _'; setAcct('fb-out'); return null; }
   if(p.length<6){ fbMsg='Password needs at least 6 characters.'; setAcct('fb-out'); return null; }
   return {u,p};
@@ -641,56 +815,77 @@ async function fbOnUser(user){
     persist(); refreshLobbyFromSave(); setAcct('fb-in'); subscribeProfile();
   }catch(e){ setAcct('error'); }
 }
+/* ---- dedicated sign-in page ---- */
+let guest=false, authMode='login';
+function authForm(){ return {u:($('auth-user').value||'').trim().toLowerCase(), p:$('auth-pass').value||''}; }
+function setAuthMode(m){
+  authMode=m;
+  $('tab-login').classList.toggle('sel',m==='login'); $('tab-signup').classList.toggle('sel',m==='signup');
+  $('auth-go').textContent=m==='login'?'Log in':'Create account';
+  $('auth-pass').autocomplete=m==='login'?'current-password':'new-password';
+  $('auth-err').textContent='';
+}
+$('tab-login').onclick=()=>setAuthMode('login'); $('tab-signup').onclick=()=>setAuthMode('signup');
+$('auth-go').onclick=()=>{ if(fbReady()) (authMode==='login'?fbLogin:fbSignup)(); else localLogin(); };
+$('auth-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') $('auth-go').click(); });
+$('auth-user').addEventListener('keydown',e=>{ if(e.key==='Enter') $('auth-pass').focus(); });
+$('auth-guest').onclick=()=>{ guest=true; renderAcct(); };
+function showAuthPage(on,err){
+  $('authpage').style.display=on?'flex':'none';
+  if(!on) return;
+  $('auth-err').textContent=err||'';
+  $('auth-note').textContent=fbReady()
+    ? 'Your account lives in the Blast Rivals database, so you can log in from any computer.'
+    : 'No database is connected in this copy, so this account is stored on this device only.';
+  $('auth-go').disabled=acctState==='fb-busy';
+  $('auth-go').textContent=acctState==='fb-busy'?'Signing in…':(authMode==='login'?'Log in':'Create account');
+}
+/* ---- lobby player bar ---- */
 function renderAcct(){
+  const needAuth=!guest && (acctState==='fb-out'||acctState==='fb-busy'||(acctState==='nodb'&&!localUser));
+  showAuthPage(needAuth, acctState==='fb-out'?fbMsg:(acctState==='nodb'?acctLinkMsg.replace(/^Enter your account code:$/,''):''));
   const el=$('acct'); el.innerHTML='';
-  const S=t=>{ const s=document.createElement('span'); s.innerHTML=t; el.appendChild(s); return s; };
-  const B=(label,fn)=>{ const b=document.createElement('button'); b.className='abtn'; b.textContent=label; b.onclick=fn; el.appendChild(b); return b; };
-  if(acctState==='checking'){ S('Checking cloud saves…'); }
-  else if(acctState==='fb-out'){
-    S(fbMsg ? `<span style="color:var(--bad)">${esc(fbMsg)}</span>` : 'Log in to save your progress and play from any computer:');
-    const u=document.createElement('input'); u.id='fb-user'; u.placeholder='username'; u.maxLength=16; u.autocomplete='username'; u.style.textTransform='none'; el.appendChild(u);
-    const p=document.createElement('input'); p.id='fb-pass'; p.type='password'; p.placeholder='password'; p.maxLength=64; p.autocomplete='current-password'; p.style.textTransform='none'; el.appendChild(p);
-    B('Log in',fbLogin); B('Sign up',fbSignup);
-    p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbLogin(); });
+  const name = acctState==='fb-in'?fbUsername : (acctState==='nodb'&&localUser)?localUser : (acctState==='linked'||acctState==='error')?save.name : guest?'Guest':'Player';
+  const sub = acctState==='checking'?'Checking your account…'
+    : acctState==='fb-in'?'Saved to the database · synced live'
+    : acctState==='fb-out'||acctState==='fb-busy'?'Playing as guest — log in to save your progress'
+    : acctState==='nodb'?(localUser?'Local account · saved on this device':'Guest · progress stays on this device')
+    : acctState==='linked'?`Cloud account ${acctCode} · synced live`
+    : acctState==='error'?'Sync hiccup — changes retry automatically'
+    : acctState==='link'?acctLinkMsg : 'Cloud account';
+  const level=Math.max(1,Math.floor(save.level||1)), xp=Math.floor(save.xp||0), into=xp%250;
+  el.innerHTML=`<div class="pb-id"><span class="avatar">${esc(String(name).slice(0,1).toUpperCase())}</span><div><div class="pb-name">${esc(name)}</div><div class="pb-sub ${acctState==='error'?'bad':''}">${esc(sub)}</div></div></div>
+    <div class="pb-level"><span class="lvl">LV ${fmt(level)}</span><div class="xpwrap"><div class="xpbar"><i style="width:${Math.round(into/250*100)}%"></i></div><small>${fmt(into)} / 250 XP to next level</small></div></div>
+    <div class="pb-stats"><div><b>${fmt(save.roundsWon||0)}</b><small>wins</small></div><div><b>${fmt(save.totalKills||0)}</b><small>kills</small></div><div><b>${fmt(save.headshots||0)}</b><small>headshots</small></div></div>`;
+  const act=document.createElement('div'); act.className='pb-actions'; el.appendChild(act);
+  const B=(label,fn)=>{ const b=document.createElement('button'); b.className='abtn'; b.textContent=label; b.onclick=fn; act.appendChild(b); return b; };
+  if(acctState==='fb-in') B('Log out',fbLogout);
+  else if(acctState==='fb-out'||acctState==='fb-busy') B('Log in / Sign up',()=>{ guest=false; renderAcct(); });
+  else if(acctState==='nodb'){
+    if(localUser){ B('Log out',()=>{ localUser=null; try{ localStorage.removeItem('blastrivals-local-user'); }catch(e){} setAcct('nodb'); }); B('Download backup',exportProgress);
+      const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.className='file-input'; inp.onchange=()=>importProgress(inp.files[0]); act.appendChild(inp); B('Load backup',()=>inp.click()); }
+    else { B('Log in / Sign up',()=>{ guest=false; renderAcct(); }); B('Download backup',exportProgress); }
   }
-  else if(acctState==='fb-busy'){ S('Signing in…'); }
-  else if(acctState==='fb-in'){
-    S(`Logged in as <b>${esc(fbUsername)}</b> — progress saves to the database automatically.`);
-    B('Log out',fbLogout);
-  }
-  else if(acctState==='nodb'){   // no database available: local, this-device-only account
-    if(localUser){ S(`Local account <b>${esc(localUser)}</b> — saved on this device.`); B('Log out',()=>{ localUser=null; setAcct('nodb'); }); B('Download JSON',exportProgress); const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.className='file-input'; inp.onchange=()=>importProgress(inp.files[0]); el.appendChild(inp); B('Load JSON',()=>inp.click()); }
-    else { S('Local account — set a username and password to save progress on this device:'); const u=document.createElement('input'); u.id='local-user'; u.placeholder='username'; u.maxLength=20; const p=document.createElement('input'); p.id='local-pass'; p.type='password'; p.placeholder='password'; p.maxLength=80; el.append(u,p); B('Create / sign in',localLogin); B('Download JSON',exportProgress); }
-  }
-  else if(acctState==='nocode'){
-    S('Cloud account — keep your bombs, guns &amp; skins on any device:');
-    B('Create account',createAccount);
-    B('I have a code',()=>{ acctLinkMsg='Enter your account code:'; setAcct('link'); });
-  }
+  else if(acctState==='nocode'){ B('Create account',createAccount); B('I have a code',()=>{ acctLinkMsg='Enter your account code:'; setAcct('link'); }); }
   else if(acctState==='link'){
-    S(esc(acctLinkMsg));
-    const inp=document.createElement('input'); inp.id='acct-code-in'; inp.placeholder='BR-XXXX-XXXX'; inp.maxLength=14; el.appendChild(inp);
-    B('Load',()=>linkAccount(inp.value.trim().toUpperCase()));
-    B('Cancel',()=>setAcct(acctCode?'linked':'nocode'));
+    const inp=document.createElement('input'); inp.id='acct-code-in'; inp.placeholder='BR-XXXX-XXXX'; inp.maxLength=14; act.appendChild(inp);
+    B('Load',()=>linkAccount(inp.value.trim().toUpperCase())); B('Cancel',()=>setAcct(acctCode?'linked':'nocode'));
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') linkAccount(inp.value.trim().toUpperCase()); });
   }
-  else if(acctState==='error'){
-    S(`Account <b>${esc(acctCode||'?')}</b> — sync hiccup, changes retry automatically`);
-    B('Retry now',()=>pushProfile());
-  }
-  else { // linked
-    S(`Account <b>${esc(acctCode)}</b> — progress auto-saves & syncs live. Use this code on any device.`);
+  else if(acctState==='error') B('Retry now',()=>pushProfile());
+  else if(acctState==='linked'){
     B('Copy code',async ev=>{ try{ await navigator.clipboard.writeText(acctCode); ev.target.textContent='Copied!'; setTimeout(()=>{ev.target.textContent='Copy code';},1200); }catch(e){} });
     B('Use another code',()=>{ acctLinkMsg='Enter the account code to switch to:'; setAcct('link'); });
   }
-  const note=document.createElement('div'); note.className='account-note'; note.innerHTML=profileSummary(); el.appendChild(note);
 }
 async function localLogin(){
-  const username=($('local-user')?.value||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,20);
-  const password=$('local-pass')?.value||'';
+  const username=authForm().u.replace(/[^a-z0-9_-]/g,'').slice(0,20);
+  const password=authForm().p;
   if(username.length<3 || password.length<4){ acctLinkMsg='Use at least 3 username characters and 4 password characters.'; renderAcct(); return; }
   const all=localAccounts(), hash=await passwordHash(password), existing=all[username];
   if(existing && existing.passwordHash!==hash){ acctLinkMsg='That username already exists, but the password did not match.'; renderAcct(); return; }
+  if(!existing && authMode==='login'){ acctLinkMsg='No account with that name on this device yet — switch to Sign up to create it.'; renderAcct(); return; }
+  acctLinkMsg='Enter your account code:';
   if(!existing){ all[username]={passwordHash:hash,profile:profileBody()}; storeLocalAccounts(all); }
   localUser=username; try{ localStorage.setItem('blastrivals-local-user',username); }catch(e){}
   if(existing) loadLocalProfile(username); else persist();
@@ -743,7 +938,6 @@ function persist(){
   saveLocalAccount();
   scheduleSync();
 }
-const $=id=>document.getElementById(id);
 
 /* ================= LOBBY UI ================= */
 function fmt(n){ return n.toLocaleString('en-US'); }
@@ -758,17 +952,34 @@ function renderMaps(){
     $('maps').appendChild(d);
   });
 }
+function matchQ(...fields){ const q=shopUI.q.trim().toLowerCase(); return !q || fields.some(f=>String(f).toLowerCase().includes(q)); }
+function showWeapons(){ return shopUI.view==='all'||shopUI.view==='weapons'||shopUI.view==='owned'; }
+function showSkins(){ return shopUI.view==='all'||shopUI.view==='skins'||shopUI.view==='owned'; }
+function showWraps(){ return shopUI.view==='all'||shopUI.view==='wraps'||shopUI.view==='owned'; }
+function renderShopCats(){
+  const el=$('shop-cats'); el.innerHTML=''; el.hidden=!showWeapons();
+  ['all',...WEAPON_CATS].forEach(c=>{
+    const b=document.createElement('button'); b.className='chip'+(shopUI.cat===c?' sel':''); b.textContent=c==='all'?'All types':c;
+    b.onclick=()=>{ shopUI.cat=c; renderShop(); }; el.appendChild(b);
+  });
+}
 function renderShop(){
   const maxD=Math.max(...WEAPONS.map(w=>w.dmg*w.pellets));
   const maxDps=Math.max(...WEAPONS.map(w=>w.dmg*w.pellets/w.cd));
+  renderShopCats();
   $('shop').innerHTML='';
-  WEAPONS.forEach(w=>{
+  let list=WEAPONS.filter(w=>matchQ(w.name,w.desc,wcat(w.id)) && (shopUI.cat==='all'||wcat(w.id)===shopUI.cat) && (shopUI.view!=='owned'||save.owned.includes(w.id)));
+  const sorters={price:(a,b)=>a.price-b.price,'price-desc':(a,b)=>b.price-a.price,dmg:(a,b)=>b.dmg*b.pellets-a.dmg*a.pellets,dps:(a,b)=>b.dmg*b.pellets/b.cd-a.dmg*a.pellets/a.cd,name:(a,b)=>a.name.localeCompare(b.name)};
+  list=list.slice().sort(sorters[shopUI.sort]||sorters.price);
+  $('shop-head-w').hidden=!showWeapons(); $('shop').hidden=!showWeapons();
+  $('shop-count-w').textContent=`· ${list.length} of ${WEAPONS.length}`;
+  list.forEach(w=>{
     const owned=save.owned.includes(w.id), eq=save.equipped===w.id;
     const hit=w.dmg*w.pellets, dps=Math.round(hit/w.cd);
     const card=document.createElement('div');
     card.className='wep'+(eq?' equipped':'');
     card.innerHTML=`
-      <div class="wep-head"><span class="wep-name">${w.name}</span>
+      <div class="wep-head"><span class="wep-name">${w.name}<span class="wep-tag">${wcat(w.id)}</span></span>
         <span class="wep-price ${w.price===0?'free':''}">${w.price===0?'FREE':'💣 '+fmt(w.price)}</span></div>
       <div class="wep-desc">${w.desc}</div>
       <div class="stats">
@@ -786,10 +997,15 @@ function renderShop(){
         save.bombs-=w.price; save.owned.push(w.id); save.equipped=w.id; persist(); renderWallet(); renderShop(); };
     }
     card.appendChild(btn);
-    const test=document.createElement('button'); test.className='wbtn test'; test.textContent='TEST FIRE — NO PURCHASE'; test.onclick=()=>startGame(w.id,true); card.appendChild(test);
+    const test=document.createElement('button'); test.className='wbtn test'; test.textContent=owned?'PRACTICE RANGE':'TRY IT FREE'; test.onclick=()=>startGame(w.id,true); card.appendChild(test);
     $('shop').appendChild(card);
   });
-  renderSkins(); renderWraps();
+  const ns=renderSkins(), nr=renderWraps();
+  const nothing=(showWeapons()?list.length:0)+(showSkins()?ns:0)+(showWraps()?nr:0)===0;
+  $('shop-empty').hidden=!nothing;
+  $('shop-empty').textContent=(shopUI.view==='owned' && !shopUI.q)
+    ? 'You only own the Blaster so far — eliminate rivals to earn bombs, then come back and buy something loud.'
+    : 'Nothing matches that search. Try a gun name like “sniper” or a finish like “gold”.';
 }
 function cosButton(owned,equipped,price,onBuy,onEquip){
   const btn=document.createElement('button');
@@ -800,7 +1016,10 @@ function cosButton(owned,equipped,price,onBuy,onEquip){
 }
 function renderSkins(){
   $('skinshop').innerHTML='';
-  SKINS.forEach(s=>{
+  const list=SKINS.filter(s=>{ const w=WEAPONS.find(x=>x.id===s.wep); return matchQ(s.name,w.name,'skin') && (shopUI.view!=='owned'||save.ownedSkins.includes(s.id)) && (shopUI.cat==='all'||!showWeapons()||wcat(s.wep)===shopUI.cat); });
+  $('shop-head-s').hidden=!showSkins()||!list.length; $('skinshop').hidden=!showSkins();
+  $('shop-count-s').textContent=`· ${list.length} of ${SKINS.length}`;
+  list.forEach(s=>{
     const w=WEAPONS.find(x=>x.id===s.wep);
     const owned=save.ownedSkins.includes(s.id), eq=save.skins[s.wep]===s.id;
     const card=document.createElement('div'); card.className='cos'+(eq?' equipped':'');
@@ -813,10 +1032,14 @@ function renderSkins(){
       card.lastChild.textContent='EQUIPPED — TAP TO REMOVE'; card.lastChild.style.cursor='pointer'; }
     $('skinshop').appendChild(card);
   });
+  return list.length;
 }
 function renderWraps(){
   $('wrapshop').innerHTML='';
-  WRAPS.forEach(wr=>{
+  const list=WRAPS.filter(wr=>matchQ(wr.name,wr.desc,'wrap') && (shopUI.view!=='owned'||save.ownedWraps.includes(wr.id)));
+  $('shop-head-r').hidden=!showWraps()||!list.length; $('wrapshop').hidden=!showWraps();
+  $('shop-count-r').textContent=`· ${list.length} of ${WRAPS.length}`;
+  list.forEach(wr=>{
     const owned=save.ownedWraps.includes(wr.id), eq=save.wrap===wr.id;
     const card=document.createElement('div'); card.className='cos'+(eq?' equipped':'');
     const glow=wr.glow?`glow" style="--glowc:${cssHex(wr.glow)}; background:linear-gradient(135deg,${cssHex(wr.tint)},${cssHex(wr.glow)})"`
@@ -831,7 +1054,14 @@ function renderWraps(){
       card.lastChild.textContent='EQUIPPED — TAP TO REMOVE'; card.lastChild.style.cursor='pointer'; }
     $('wrapshop').appendChild(card);
   });
+  return list.length;
 }
+/* armory toolbar wiring */
+$('shop-q').addEventListener('input',e=>{ shopUI.q=e.target.value; $('shop-clr').hidden=!shopUI.q; renderShop(); });
+$('shop-clr').onclick=()=>{ shopUI.q=''; $('shop-q').value=''; $('shop-clr').hidden=true; renderShop(); $('shop-q').focus(); };
+$('shop-view').addEventListener('click',e=>{ const t=e.target.closest('.tab'); if(!t) return;
+  shopUI.view=t.dataset.view; [...$('shop-view').children].forEach(b=>b.classList.toggle('sel',b===t)); renderShop(); });
+$('shop-sort').addEventListener('change',e=>{ shopUI.sort=e.target.value; renderShop(); });
 function renderModes(){
   $('mode-solo').classList.toggle('sel', save.mode==='solo');
   $('mode-mp').classList.toggle('sel', save.mode==='mp');
